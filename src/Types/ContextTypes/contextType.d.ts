@@ -1,0 +1,69 @@
+import type { ApiResponse } from "../ApiResponseTypes/ApiResponse";
+import type { ApplicationUser } from "../EntityTypes/ApplicationUser";
+import type { ChatRoomType } from "../EntityTypes/ChatRoom";
+import type { Message } from "../EntityTypes/Message";
+
+export type MessageContextType = {
+  messages: Message[];
+  fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
+  sendMessage: (chatRoomId: string, content: string,isGroup: boolean) => Promise<ApiResponse<boolean>>;
+  deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;
+  isLoading: boolean;
+  error: string | null;
+  clearMessages: () => void;
+  isMessageSent:boolean
+};
+
+export type AuthContextType = {
+  user: ApplicationUser | null;
+  login: (username: string, password: string) => Promise<ApiResponse<string>>;
+  register: (username: string, password: string) => Promise<ApiResponse<number>>; 
+  getUserById: (userId: string) => Promise<ApiResponse<ApplicationUser>>;
+  logout: () => void;
+  isLoading: boolean;
+};
+
+export type ChatUIContextType = {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  goBack: () => void;
+  canGoBack: boolean;
+};
+
+export type UserContextType = {
+  user: ApplicationUser | null;
+  users : ApplicationUser[],
+  getUserById : (userId : string) => Promise<void>;
+  fetchUsers :(numberOfUsers : number) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export type ChatRoomUserContextType = {
+  addUserToChatRoom: (chatRoomId : string,userIds : string[]) => Promise<ApiResponse<boolean>>;
+  removeUserFromChatRoom : (chatRoomId : string, userId : string) => Promise<ApiResponse<boolean>>
+  getUsersFromChatRoom : (chatRoomId : string) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+  users: ApplicationUser[]
+}
+
+export type ChatRoomContextType = {
+  chatRoom: ChatRoomType | null;
+  chatRooms: ChatRoomType[];
+  lastAction: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null;
+  setLastAction: (action: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null) => void;
+  isLoading: boolean;
+  error: string | null;
+  
+  createchatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
+  getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
+  getChatRoomByName: (chatRoomName: string) => Promise<void>;
+  getChatRoomById: (chatRoomId: string) => Promise<void>;
+  deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
+  updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
+};
+
+type SignalContextType = {
+  connection: signalR.HubConnection | null;
+};
