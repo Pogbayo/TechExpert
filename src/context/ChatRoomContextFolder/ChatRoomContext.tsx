@@ -4,6 +4,7 @@ import type { ChatRoomContextType } from "../../Types/ContextTypes/contextType";
 import type { ChatRoomType } from "../../Types/EntityTypes/ChatRoom";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
+import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -12,7 +13,6 @@ export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
 
 const CHAT_ROOM_STORAGE_KEY = "chatRoom";
 const CHAT_ROOMS_STORAGE_KEY = "chatRooms";
-
 export function ChatRoomProvider({ children }: { children: ReactNode }) {
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(() => {
     const stored = localStorage.getItem(CHAT_ROOM_STORAGE_KEY);
@@ -23,6 +23,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+
+  const navigate = useNavigate();
   const { connection } = useSignal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post(`/api/chatrooms`, { name, isGroup, memberIds });
+      await axios.post(`/api/chatroom`, { name, isGroup, memberIds });
       setLastAction("chatroom-created");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -218,9 +220,44 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function openChatRoom(chatRoomId: string): Promise<void> {
+    navigate(`/chat/${chatRoomId}`);
+  }
+
+  async function getPrivateChatRoom(
+    currentUserId: string,
+    friendUserId: string
+  ): Promise<string> {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get<ApiResponse<ChatRoomType>>(
+        `/api/chatroom/get-private-chat`,
+        {
+          params: {
+            currentUserId,
+            friendUserId,
+          },
+        }
+      );
+      if (response.data.success && response.data.data) {
+        return response.data.data.ChatRoomId;
+      } else {
+        throw new Error("Failed to get private chat room.");
+      }
+    } catch (error) {
+      setError("Failed to get private chat room.");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <ChatRoomContext.Provider
       value={{
+        getPrivateChatRoom,
+        openChatRoom,
         chatRoom,
         chatRooms,
         lastAction,

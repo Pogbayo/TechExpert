@@ -13,7 +13,7 @@ export const ChatRoomUserContext = createContext<
 export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [users, setUsers] = useState<ApplicationUser[]>([]);
+  const [chatRoomUsers, setChatRoomUsers] = useState<ApplicationUser[]>([]);
   const { connection } = useSignal();
   const CHAT_ROOM_USERS_STORAGE_KEY = "chatRoomUsers";
 
@@ -22,7 +22,7 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
     if (storedUsers) {
       try {
         const parsedUsers: ApplicationUser[] = JSON.parse(storedUsers);
-        setUsers(parsedUsers);
+        setChatRoomUsers(parsedUsers);
       } catch {
         localStorage.removeItem(CHAT_ROOM_USERS_STORAGE_KEY);
       }
@@ -30,12 +30,15 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (users.length > 0) {
-      localStorage.setItem(CHAT_ROOM_USERS_STORAGE_KEY, JSON.stringify(users));
+    if (chatRoomUsers.length > 0) {
+      localStorage.setItem(
+        CHAT_ROOM_USERS_STORAGE_KEY,
+        JSON.stringify(chatRoomUsers)
+      );
     } else {
       localStorage.removeItem(CHAT_ROOM_USERS_STORAGE_KEY);
     }
-  }, [users]);
+  }, [chatRoomUsers]);
 
   async function addUserToChatRoom(
     chatRoomId: string,
@@ -50,7 +53,7 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success && response.data.data) {
-        setUsers((prev) => [...prev, ...(response.data.data ?? [])]);
+        setChatRoomUsers((prev) => [...prev, ...(response.data.data ?? [])]);
         setIsLoading(false);
         return { success: true };
       } else {
@@ -83,8 +86,7 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success) {
-        // Remove user from state on success
-        setUsers((prev) => prev.filter((user) => user.id !== userId));
+        setChatRoomUsers((prev) => prev.filter((user) => user.id !== userId));
         setIsLoading(false);
         return { success: true };
       } else {
@@ -113,7 +115,7 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
         `/api/chatrooms/${chatRoomId}/users`
       );
       if (response.data.success) {
-        setUsers(response.data.data ?? []);
+        setChatRoomUsers(response.data.data ?? []);
       } else {
         setError(response.data.message || "Failed to get users.");
       }
@@ -131,11 +133,13 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (connection) {
       connection.on("UserAddedToChatRoom", (newUser: ApplicationUser) => {
-        setUsers((prev) => [...prev, newUser]);
+        setChatRoomUsers((prev) => [...prev, newUser]);
       });
 
       connection.on("UserRemovedFromChatRoom", (removedUserId: string) => {
-        setUsers((prev) => prev.filter((user) => user.id !== removedUserId));
+        setChatRoomUsers((prev) =>
+          prev.filter((user) => user.id !== removedUserId)
+        );
       });
     }
 
@@ -155,7 +159,7 @@ export function ChatRoomUserProvider({ children }: { children: ReactNode }) {
         getUsersFromChatRoom,
         isLoading,
         error,
-        users,
+        chatRoomUsers,
       }}
     >
       {children}

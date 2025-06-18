@@ -4,7 +4,7 @@ import type { ChatRoomType } from "../EntityTypes/ChatRoom";
 import type { Message } from "../EntityTypes/Message";
 
 export type MessageContextType = {
-  messages: Message[];
+  messagesByChatRoomId: Message[];
   fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
   sendMessage: (chatRoomId: string, content: string,isGroup: boolean) => Promise<ApiResponse<boolean>>;
   deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;
@@ -45,7 +45,7 @@ export type ChatRoomUserContextType = {
   getUsersFromChatRoom : (chatRoomId : string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
-  users: ApplicationUser[]
+  chatRoomUsers: ApplicationUser[]
 }
 
 export type ChatRoomContextType = {
@@ -55,15 +55,32 @@ export type ChatRoomContextType = {
   setLastAction: (action: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null) => void;
   isLoading: boolean;
   error: string | null;
-  
+  openChatRoom:(chatRoomId:string) => Promise<void>;
   createchatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
+  getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<Void>
   getChatRoomByName: (chatRoomName: string) => Promise<void>;
   getChatRoomById: (chatRoomId: string) => Promise<void>;
   deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
   updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
 };
 
-type SignalContextType = {
+export type SignalContextType = {
   connection: signalR.HubConnection | null;
+};
+
+export type ChatWindowProps = {
+  chatRoomId: string;
+};
+
+export type MessageInputProps = {
+  chatRoomId: string;
+};
+
+export interface ProvidersProps {
+  children: ReactNode;
+}
+
+type LoginProps = {
+  onLogin: (username: string, password: string) => void;
 };

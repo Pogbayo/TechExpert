@@ -11,7 +11,9 @@ export const MessageContext = createContext<MessageContextType | undefined>(
 );
 
 export function MessageProvider({ children }: { children: ReactNode }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesByChatRoomId, setmessagesByChatRoomId] = useState<Message[]>(
+    []
+  );
   const [isLoading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isMessageSent, setIsMessageSent] = useState<boolean>(false);
@@ -25,7 +27,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         `/api/messages/${chatRoomId}`
       );
       if (response.data.success) {
-        setMessages(response.data.data ?? []);
+        setmessagesByChatRoomId(response.data.data ?? []);
       } else {
         setError(response.data.message || "Failed to load messages.");
       }
@@ -46,7 +48,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
-        setMessages((prev) => [...prev, newMessage]);
+        setmessagesByChatRoomId((prev) => [...prev, newMessage]);
       });
 
       // connection.on("DeleteMessage", (deletedMessageId: string) => {
@@ -65,7 +67,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   }, [connection]);
 
   function clearMessages() {
-    setMessages([]);
+    setmessagesByChatRoomId([]);
   }
 
   async function sendMessage(
@@ -138,7 +140,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         `/api/messages/${messageId}`
       );
       if (response.data.success) {
-        setMessages((prev) =>
+        setmessagesByChatRoomId((prev) =>
           prev.filter((message) => message.MessageId != messageId)
         );
         return {
@@ -183,7 +185,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   return (
     <MessageContext.Provider
       value={{
-        messages,
+        messagesByChatRoomId,
         fetchMessagesByChatRoomId,
         isLoading,
         error,

@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { ChatRoomContext } from "./ChatRoomContext";
 
-export function useChatRoomContext() {
+export function useChatRoom() {
   const context = useContext(ChatRoomContext);
   
   if (!context) {
