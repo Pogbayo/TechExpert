@@ -23,7 +23,7 @@ export default function MutualFriends() {
         {chatRoomUsers.map((friend, idx) => (
           <>
             <li key={idx} onClick={() => handleOpenChat(friend.id)}>
-              {friend.Username}
+              {friend.username}
             </li>
           </>
         ))}

@@ -87,6 +87,6 @@ export interface ProvidersProps {
   children: ReactNode;
 }
 
-type LoginProps = {
-  onLogin: (username: string, password: string) => void;
-};
+// type LoginProps = {
+//   onLogin: (username: string, password: string) => void;
+// };

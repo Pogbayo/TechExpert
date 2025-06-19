@@ -1,7 +1,7 @@
 
 
 export type Message = {
-  MessageId: string ;      
+  messageId: string ;      
   content: string;
   senderId: number;            
   timestamp?: string;   

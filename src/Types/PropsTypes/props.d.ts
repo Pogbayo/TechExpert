@@ -21,6 +21,10 @@ export type ChatHeaderProps = {
   onBack?: () => void;         
 };
 
+type ChatRoomListProps = {
+  showDpOnly?: boolean;
+  onSelectChatRoom?: (chatRoomId: string) => void;
+};
 
 export type AvatarProps = {
   src?: string;               
