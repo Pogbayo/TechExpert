@@ -1,10 +1,10 @@
 import type { ApplicationUser } from "./ApplicationUser"
 
 export type ChatRoomType = {
-    ChatRoomId : string ,
-    Name : string,
-    IsGroup : boolean,
-    LastMessageContent: string,
-    LastMessageTimeStamp : string,
-    Users : ApplicationUser[]
-}
+  chatRoomId: string;
+  name: string;
+  isGroup: boolean;
+  lastMessageContent: string | null;
+  lastMessageTimestamp: string | null;
+  users: ApplicationUser[];
+};

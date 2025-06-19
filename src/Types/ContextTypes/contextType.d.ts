@@ -16,11 +16,12 @@ export type MessageContextType = {
 
 export type AuthContextType = {
   user: ApplicationUser | null;
-  login: (username: string, password: string) => Promise<ApiResponse<string>>;
-  register: (username: string, password: string) => Promise<ApiResponse<number>>; 
-  getUserById: (userId: string) => Promise<ApiResponse<ApplicationUser>>;
+  login: (Email: string, password: string) => Promise<ApiResponse<LoginResponse>>;
+  register: (Email: string, password: string) => Promise<ApiResponse<string>>; 
+  getUserById: (userId: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  isAuthChecked:boolean;
 };
 
 export type ChatUIContextType = {
@@ -56,7 +57,7 @@ export type ChatRoomContextType = {
   isLoading: boolean;
   error: string | null;
   openChatRoom:(chatRoomId:string) => Promise<void>;
-  createchatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
+  createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
   getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<Void>
   getChatRoomByName: (chatRoomName: string) => Promise<void>;
@@ -64,6 +65,11 @@ export type ChatRoomContextType = {
   deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
   updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
 };
+
+export type LoginResponse = {
+  token: string;
+  user : ApplicationUser | null;
+}
 
 export type SignalContextType = {
   connection: signalR.HubConnection | null;

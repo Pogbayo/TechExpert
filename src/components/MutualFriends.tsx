@@ -15,6 +15,7 @@ export default function MutualFriends() {
       openChatRoom(privateChatRoomId);
     }
   };
+
   return (
     <div>
       <h3>Mutual Friends</h3>

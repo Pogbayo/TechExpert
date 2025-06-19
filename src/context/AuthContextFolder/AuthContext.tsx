@@ -1,9 +1,12 @@
-import { createContext, useState, type ReactNode } from "react";
-
+import { createContext, useEffect, useState, type ReactNode } from "react";
 import axios, { AxiosError } from "axios";
-import type { AuthContextType } from "../../Types/ContextTypes/contextType";
+import type {
+  AuthContextType,
+  LoginResponse,
+} from "../../Types/ContextTypes/contextType";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import type { ApplicationUser } from "../../Types/EntityTypes/ApplicationUser";
+import axiosInstance from "../../IAxios/axiosInstance";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -13,18 +16,48 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApplicationUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${storedToken}`;
+    }
+    setIsAuthChecked(true);
+  }, []);
 
   async function login(
-    username: string,
-    password: string
-  ): Promise<ApiResponse<string>> {
+    Email: string,
+    Password: string
+  ): Promise<ApiResponse<LoginResponse>> {
     try {
       setIsLoading(true);
-      const response = await axios.post<ApiResponse<string>>("/api/login", {
-        username,
-        password,
-      });
-      setIsLoading(false);
+      const response = await axiosInstance.post<ApiResponse<LoginResponse>>(
+        "/applicationuser/login",
+        { Email, Password }
+      );
+
+      if (response.data.success && response.data.data) {
+        const token = response.data.data.token;
+        const loggedInUser = response.data.data.user;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+
+        console.log(token, loggedInUser);
+
+        setUser(loggedInUser);
+      }
+
       return {
         success: true,
         message: "Login successful",
@@ -36,23 +69,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         success: false,
         message: "Login failed",
-        data: "",
+        data: undefined,
         error:
           axiosError.response?.data?.message ||
           "An error occurred during login",
       };
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function register(
-    username: string,
-    password: string
-  ): Promise<ApiResponse<number>> {
+    Email: string,
+    Password: string
+  ): Promise<ApiResponse<string>> {
     try {
-      const response = await axios.post<ApiResponse<number>>("/api/register", {
-        username,
-        password,
-      });
+      const response = await axiosInstance.post<ApiResponse<string>>(
+        "/applicationuser/register",
+        { Email, Password }
+      );
       return {
         success: true,
         message: "Registration successful",
@@ -64,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         success: false,
         message: "Registration failed",
-        data: undefined,
+        data: "",
         error:
           axiosError.response?.data?.message ||
           "An error occurred during registration",
@@ -72,9 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function getUserById(
-    userId: string
-  ): Promise<ApiResponse<ApplicationUser>> {
+  async function getUserById(userId: string): Promise<void> {
     try {
       const response = await axios.get<ApiResponse<ApplicationUser>>(
         `/api/users/${userId}`
@@ -82,31 +115,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.data.success && response.data.data) {
         setUser(response.data.data);
       }
-      return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
-      return {
-        success: false,
-        message: "User fetch failed",
-        data: {
-          id: "",
-          Username: "",
-          DpUrl: "",
-        } as ApplicationUser,
-        error:
-          axiosError.response?.data?.message ||
-          "An error occurred while fetching user",
-      };
+      console.log(axiosError);
     }
   }
 
   function logout() {
     setUser(null);
+    localStorage.removeItem("token");
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, register, getUserById, isLoading }}
+      value={{
+        user,
+        login,
+        logout,
+        register,
+        getUserById,
+        isLoading,
+        isAuthChecked,
+      }}
     >
       {children}
     </AuthContext.Provider>

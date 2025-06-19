@@ -7,16 +7,38 @@ import {
 import ChatLayout from "./pages/ChatLayout";
 import Providers from "./context/ContextWrapper/Providers";
 import AuthPage from "./components/AuthPage";
+import PrivateRoute from "./components/PrivateRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <Router>
       <Providers>
+        <Toaster position="top-center" reverseOrder={false} />
         <Routes>
-          <Route path="/" element={<Navigate to="/chat" />} />
-          <Route path="/chat" element={<ChatLayout />} />
+          {/* Default route: AuthPage */}
+          <Route path="/" element={<AuthPage />} />
           <Route path="/auth" element={<AuthPage />} />
-          <Route path="/chat/:chatRoomId" element={<ChatLayout />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/chat"
+            element={
+              <PrivateRoute>
+                <ChatLayout />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/chat/:chatRoomId"
+            element={
+              <PrivateRoute>
+                <ChatLayout />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/chat" />} />
         </Routes>
       </Providers>

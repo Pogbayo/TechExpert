@@ -1,52 +1,106 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const { login, register } = useAuth();
+
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setLoading(false);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    setError("");
+    setLoading(true);
+    try {
+      const success = await login(email, password);
+      if (success.success) {
+        toast.success("Login successful!");
+        navigate("/chat");
+      }
+    } catch (err: unknown) {
+      console.log(err);
+      setError("Login failed.");
+      toast.success("Login failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    resetForm();
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match.");
       return;
     }
-    await register(email, password);
+    setLoading(true);
+    try {
+      const success = await register(email, password);
+      if (success.success) {
+        toast.success("Registration successful!");
+        setIsLogin(true);
+        setLoading(false);
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "message" in err) {
+        setError((err as { message: string }).message);
+        toast.success("Registration failed");
+      } else {
+        setError("Registration failed.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+    <div className="flex justify-center items-center min-h-screen bg-white px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
         <div className="flex justify-between mb-6">
           <button
-            onClick={() => setIsLogin(true)}
-            className={`w-1/2 py-2 rounded-l-xl font-semibold ${
-              isLogin ? "bg-blue-600 text-white" : "bg-gray-200"
+            onClick={() => {
+              setIsLogin(true);
+              resetForm();
+            }}
+            className={`w-1/2 py-3 rounded-b-sm font-semibold transition ${
+              isLogin ? "bg-black text-white" : "bg-gray-200 text-gray-700"
             }`}
+            disabled={loading}
           >
             Login
           </button>
           <button
-            onClick={() => setIsLogin(false)}
-            className={`w-1/2 py-2 rounded-r-xl font-semibold ${
-              !isLogin ? "bg-blue-600 text-white" : "bg-gray-200"
+            onClick={() => {
+              setIsLogin(false);
+              resetForm();
+            }}
+            className={`w-1/2 py-3 rounded-b-sm font-semibold transition ${
+              !isLogin ? "bg-black text-white" : "bg-gray-200 text-gray-700"
             }`}
+            disabled={loading}
           >
             Register
           </button>
         </div>
 
         {isLogin ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
+          <form onSubmit={handleLogin} className="space-y-5 animate-fade-in">
+            <h2 className="text-2xl font-medium mb-4 text-center text-gray-800">
               Login
             </h2>
             <div>
@@ -56,7 +110,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
             <div>
@@ -66,19 +120,37 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
+            {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              disabled={loading}
             >
-              Login
+              {loading ? (
+                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
+              ) : (
+                "Login"
+              )}
             </button>
+            <p className="text-center text-gray-600 mt-4">
+              Don't have an account?{" "}
+              <span
+                onClick={() => {
+                  setIsLogin(false);
+                  resetForm();
+                }}
+                className="text-black font-semibold cursor-pointer hover:underline"
+              >
+                Register here
+              </span>
+            </p>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
+          <form onSubmit={handleRegister} className="space-y-5 animate-fade-in">
+            <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
               Register
             </h2>
             <div>
@@ -88,7 +160,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
             <div>
@@ -98,7 +170,7 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
             <div>
@@ -110,15 +182,33 @@ export default function AuthPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
+            {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              disabled={loading}
             >
-              Register
+              {loading ? (
+                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
+              ) : (
+                "Register"
+              )}
             </button>
+            <p className="text-center text-gray-600 mt-4">
+              Already have an account?{" "}
+              <span
+                onClick={() => {
+                  setIsLogin(true);
+                  resetForm();
+                }}
+                className="text-black font-semibold cursor-pointer hover:underline"
+              >
+                Login here
+              </span>
+            </p>
           </form>
         )}
       </div>
