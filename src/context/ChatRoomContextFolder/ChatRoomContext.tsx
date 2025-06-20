@@ -134,8 +134,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get<ApiResponse<ChatRoomType>>(
-        `/api/chatrooms/${chatRoomId}`
+      const response = await axiosInstance<ApiResponse<ChatRoomType>>(
+        `/chatroom/${chatRoomId}`
       );
       if (response.data.success) {
         setChatRoom(response.data.data ?? null);

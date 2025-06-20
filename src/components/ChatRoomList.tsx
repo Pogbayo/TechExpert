@@ -15,16 +15,15 @@ export default function ChatRoomList({
 }: ChatRoomListProps) {
   const { chatRooms, getChatRoomsRelatedToUser } = useChatRoom();
   const { user } = useAuth();
-  const token = localStorage.getItem("token");
+  const { openChatRoom } = useChatRoom();
+
   useEffect(() => {
     const handleFetchChatRooms = async () => {
       if (user?.id) {
         await getChatRoomsRelatedToUser(user.id);
       }
     };
-    console.log(token);
     handleFetchChatRooms();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, getChatRoomsRelatedToUser]);
 
   const colors = [
@@ -80,10 +79,8 @@ export default function ChatRoomList({
           return (
             <button
               key={room.chatRoomId}
-              onClick={() =>
-                onSelectChatRoom && onSelectChatRoom(room.chatRoomId)
-              }
-              className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor} flex-shrink-0`}
+              onClick={() => onSelectChatRoom && openChatRoom(room.chatRoomId)}
+              className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor} flex-shrink-0 hover:opacity-80 transition`}
               aria-label={`Open chat room ${chatRoomName}`}
             >
               {dpLetter}
@@ -97,34 +94,37 @@ export default function ChatRoomList({
   return (
     <div>
       <h3 className="text-lg font-bold mb-4">Chat Rooms</h3>
-      <ul>
+      <ul className="space-y-3">
         {chatRooms.map((room, index) => {
           const chatRoomName = getChatRoomName(room);
           const dpLetter = chatRoomName.charAt(0).toUpperCase();
           const bgColor = getRandomColor(index);
 
           return (
-            <li key={room.chatRoomId} className="flex items-center mb-4 gap-4">
-              <div
-                className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor}`}
-              >
-                {dpLetter}
-              </div>
-
-              <div>
-                <Link
-                  to={`/chat/${room.chatRoomId}`}
-                  className=" hover:underline font-semibold"
+            <Link
+              key={room.chatRoomId}
+              to={`/chat/${room.chatRoomId}`}
+              className="block"
+            >
+              <li className="flex items-center p-3 rounded-lg hover:bg-gray-100 transition cursor-pointer gap-4">
+                <div
+                  className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
                 >
-                  {chatRoomName}
-                </Link>
-                <p className="text-gray-600 text-sm">
-                  {room.lastMessageContent
-                    ? `${room.lastMessageContent.slice(0, 20)}...`
-                    : "No Messages yet"}
-                </p>
-              </div>
-            </li>
+                  {dpLetter}
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800">
+                    {chatRoomName}
+                  </span>
+                  <p className="text-gray-500 text-sm truncate italic max-w-[180px] sm:max-w-[240px] md:max-w-[300px] lg:max-w-[360px] xl:max-w-[420px]">
+                    {room.lastMessageContent
+                      ? `${room.lastMessageContent.slice(0, 25)}...`
+                      : "No messages yet"}
+                  </p>
+                </div>
+              </li>
+            </Link>
           );
         })}
       </ul>

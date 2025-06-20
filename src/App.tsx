@@ -1,9 +1,4 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ChatLayout from "./pages/ChatLayout";
 import Providers from "./context/ContextWrapper/Providers";
 import AuthPage from "./components/AuthPage";
@@ -12,37 +7,35 @@ import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-    <Router>
-      <Providers>
-        <Toaster position="top-center" reverseOrder={false} />
-        <Routes>
-          {/* Default route: AuthPage */}
-          <Route path="/" element={<AuthPage />} />
-          <Route path="/auth" element={<AuthPage />} />
+    <Providers>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Routes>
+        {/* Default route: AuthPage */}
+        <Route path="/" element={<AuthPage />} />
+        <Route path="/auth" element={<AuthPage />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/chat"
-            element={
-              <PrivateRoute>
-                <ChatLayout />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/chat/:chatRoomId"
-            element={
-              <PrivateRoute>
-                <ChatLayout />
-              </PrivateRoute>
-            }
-          />
+        {/* Protected Routes */}
+        <Route
+          path="/chat"
+          element={
+            <PrivateRoute>
+              <ChatLayout />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/chat/:chatRoomId"
+          element={
+            <PrivateRoute>
+              <ChatLayout />
+            </PrivateRoute>
+          }
+        />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/chat" />} />
-        </Routes>
-      </Providers>
-    </Router>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/chat" />} />
+      </Routes>
+    </Providers>
   );
 }
 

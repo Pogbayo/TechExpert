@@ -8,6 +8,7 @@ export type MessageContextType = {
   fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
   sendMessage: (chatRoomId: string, content: string,isGroup: boolean) => Promise<ApiResponse<boolean>>;
   deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;
+  editMessage : (messageId : string,newContent : string) => Promise<ApiResponse<boolean>>;
   isLoading: boolean;
   error: string | null;
   clearMessages: () => void;

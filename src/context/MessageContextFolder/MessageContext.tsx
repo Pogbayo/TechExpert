@@ -26,42 +26,37 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   const [isMessageSent, setIsMessageSent] = useState<boolean>(false);
   const { connection } = useSignal();
 
-  const fetchMessagesByChatRoomId = useCallback(
-    async (chatRoomId: string) => {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await axiosInstance.get<ApiResponse<Message[]>>(
-          `/message/chatroom/${chatRoomId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-            },
-          }
-        );
-        if (response.data.success && response.data.data) {
-          setmessagesByChatRoomId(response.data.data ?? []);
-          console.log(messagesByChatRoomId);
-        } else {
-          setError(response.data.message || "Failed to load messages.");
-          console.log("failed to load messages");
+  const fetchMessagesByChatRoomId = useCallback(async (chatRoomId: string) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axiosInstance.get<ApiResponse<Message[]>>(
+        `/message/chatroom/${chatRoomId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
         }
-      } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          setError(
-            err.response?.data?.message ||
-              "An error occurred while fetching messages."
-          );
-        } else {
-          setError("An unexpected error occurred.");
-        }
-      } finally {
-        setLoading(false);
+      );
+      if (response.data.success && response.data.data) {
+        setmessagesByChatRoomId(response.data.data ?? []);
+      } else {
+        setError(response.data.message || "Failed to load messages.");
+        console.log("failed to load messages");
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while fetching messages."
+        );
+      } else {
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (connection) {
@@ -200,11 +195,61 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function editMessage(messageId: string): Promise<ApiResponse<boolean>> {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.delete<ApiResponse<null>>(
+        `/api/messages/${messageId}`
+      );
+      if (response.data.success) {
+        setmessagesByChatRoomId((prev) =>
+          prev.filter((message) => message.messageId != messageId)
+        );
+        return {
+          success: true,
+          data: true,
+          message: "Message deleted successfully.",
+        };
+      } else {
+        setError(response.data.message || "Failed to delete message.");
+        return {
+          success: false,
+          data: false,
+          message: response.data.message || "Failed to delete message.",
+        };
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while deleting message."
+        );
+        return {
+          success: false,
+          data: false,
+          message:
+            err.response?.data?.message ||
+            "An error occurred while deleting message.",
+        };
+      } else {
+        setError("An unexpected error occurred.");
+        return {
+          success: false,
+          data: false,
+          message: "An unexpected error occurred.",
+        };
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <MessageContext.Provider
       value={{
         messagesByChatRoomId,
         fetchMessagesByChatRoomId,
+        editMessage,
         isLoading,
         error,
         isMessageSent,

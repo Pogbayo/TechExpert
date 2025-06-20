@@ -8,7 +8,7 @@ export type ButtonProps = {
 
 export type ChatBubbleProps = {
   message: string;
-  senderId: number;
+  senderId: string;
 };
 
 export type ChatInputProps = {
