@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import type {
   AuthContextType,
   LoginResponse,
@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApplicationUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
-
+  const [fetchedUser, setfetchedUser] = useState<ApplicationUser | null>(null);
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -109,11 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function getUserById(userId: string): Promise<void> {
     try {
-      const response = await axios.get<ApiResponse<ApplicationUser>>(
-        `/api/users/${userId}`
+      const response = await axiosInstance.get<ApiResponse<ApplicationUser>>(
+        `/applicationuser/by-id/${userId}`
       );
       if (response.data.success && response.data.data) {
-        setUser(response.data.data);
+        setfetchedUser(response.data.data);
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -136,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         getUserById,
         isLoading,
         isAuthChecked,
+        fetchedUser,
       }}
     >
       {children}

@@ -6,17 +6,21 @@ import type { Message } from "../EntityTypes/Message";
 export type MessageContextType = {
   messagesByChatRoomId: Message[];
   fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
-  sendMessage: (chatRoomId: string, content: string,isGroup: boolean) => Promise<ApiResponse<boolean>>;
+  sendMessage: (chatRoomId: string, senderId:string ,content:string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;
   editMessage : (messageId : string,newContent : string) => Promise<ApiResponse<boolean>>;
   isLoading: boolean;
   error: string | null;
   clearMessages: () => void;
   isMessageSent:boolean
+  currentChatRoomId: string | null;
+  lastMessage:string | null;
+  setCurrentChatRoomId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export type AuthContextType = {
   user: ApplicationUser | null;
+  fetchedUser : ApplicationUser | null;
   login: (Email: string, password: string) => Promise<ApiResponse<LoginResponse>>;
   register: (Email: string, password: string) => Promise<ApiResponse<string>>; 
   getUserById: (userId: string) => Promise<void>;
@@ -77,11 +81,12 @@ export type SignalContextType = {
 };
 
 export type ChatWindowProps = {
-  chatRoomId: string;
+  chatRoom: ChatRoomType;
 };
 
 export type MessageInputProps = {
   chatRoomId: string;
+  isGroup:boolean
 };
 
 export interface ProvidersProps {

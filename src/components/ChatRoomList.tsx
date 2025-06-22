@@ -2,20 +2,25 @@ import { Link } from "react-router-dom";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useEffect } from "react";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
+import { useMessage } from "../context/MessageContextFolder/useMessage";
+import { FiLogOut } from "react-icons/fi";
 import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 
 type ChatRoomListProps = {
   showDpOnly?: boolean;
   onSelectChatRoom?: (chatRoomId: string) => void;
+  chatRoomId?: string;
+  isMobileView?: boolean;
 };
 
 export default function ChatRoomList({
   showDpOnly = false,
   onSelectChatRoom,
+  isMobileView,
 }: ChatRoomListProps) {
   const { chatRooms, getChatRoomsRelatedToUser } = useChatRoom();
-  const { user } = useAuth();
-  const { openChatRoom } = useChatRoom();
+  const { user, logout } = useAuth();
+  const { lastMessage } = useMessage();
 
   useEffect(() => {
     const handleFetchChatRooms = async () => {
@@ -30,18 +35,6 @@ export default function ChatRoomList({
     "bg-gray-500",
     "bg-gray-600",
     "bg-gray-700",
-    "bg-slate-500",
-    "bg-slate-600",
-    "bg-slate-700",
-    "bg-stone-500",
-    "bg-stone-600",
-    "bg-stone-700",
-    "bg-neutral-500",
-    "bg-neutral-600",
-    "bg-neutral-700",
-    "bg-zinc-500",
-    "bg-zinc-600",
-    "bg-zinc-700",
     "bg-blue-400",
     "bg-indigo-400",
     "bg-emerald-400",
@@ -51,26 +44,17 @@ export default function ChatRoomList({
     "bg-amber-400",
   ];
 
-  const getRandomColor = (index: number) => {
-    return colors[index % colors.length];
-  };
+  const getRandomColor = (index: number) => colors[index % colors.length];
 
   const getChatRoomName = (room: ChatRoomType) => {
-    if (room.isGroup) {
-      return room.name || "Unnamed Group";
-    } else {
-      if (Array.isArray(room.users) && room.users.length > 0) {
-        const otherUser = room.users.find((u) => u.id !== user?.id);
-        return otherUser ? otherUser.username.slice(0, 4) : "Unknown";
-      } else {
-        return "Unknown";
-      }
-    }
+    if (room.isGroup) return room.name || "Unnamed Group";
+    const otherUser = room.users.find((u) => u.id !== user?.id);
+    return otherUser ? otherUser.username.slice(0, 4) : "Unknown";
   };
 
   if (showDpOnly) {
     return (
-      <div className="flex space-x-4">
+      <div className="flex items-center space-x-4 overflow-x-auto p-2">
         {chatRooms.map((room, index) => {
           const chatRoomName = getChatRoomName(room);
           const dpLetter = chatRoomName.charAt(0).toUpperCase();
@@ -79,8 +63,10 @@ export default function ChatRoomList({
           return (
             <button
               key={room.chatRoomId}
-              onClick={() => onSelectChatRoom && openChatRoom(room.chatRoomId)}
-              className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor} flex-shrink-0 hover:opacity-80 transition`}
+              onClick={() =>
+                onSelectChatRoom && onSelectChatRoom(room.chatRoomId)
+              }
+              className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor} flex-shrink-0 hover:scale-110 active:scale-95 transition transform duration-200 shadow-md`}
               aria-label={`Open chat room ${chatRoomName}`}
             >
               {dpLetter}
@@ -92,42 +78,66 @@ export default function ChatRoomList({
   }
 
   return (
-    <div>
-      <h3 className="text-lg font-bold mb-4">Chat Rooms</h3>
-      <ul className="space-y-3">
-        {chatRooms.map((room, index) => {
-          const chatRoomName = getChatRoomName(room);
-          const dpLetter = chatRoomName.charAt(0).toUpperCase();
-          const bgColor = getRandomColor(index);
+    <div
+      className={`flex flex-col ${
+        isMobileView ? "h-screen" : "h-full"
+      } justify-between overflow-auto scrollbar-hide w-full`}
+    >
+      {/* Header */}
+      <div className="mb-4 px-4">
+        <h3 className="text-lg font-bold mb-4">Chat Rooms</h3>
+        <ul className="space-y-3">
+          {chatRooms.map((room, index) => {
+            const chatRoomName = getChatRoomName(room);
+            const dpLetter = chatRoomName.charAt(0).toUpperCase();
+            const bgColor = getRandomColor(index);
 
-          return (
-            <Link
-              key={room.chatRoomId}
-              to={`/chat/${room.chatRoomId}`}
-              className="block"
-            >
-              <li className="flex items-center p-3 rounded-lg hover:bg-gray-100 transition cursor-pointer gap-4">
-                <div
-                  className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
-                >
-                  {dpLetter}
-                </div>
+            return (
+              <Link
+                key={room.chatRoomId}
+                to={`/chat/${room.chatRoomId}`}
+                className="block w-full"
+              >
+                <li className="flex w-full items-center px-4 py-3 rounded-lg hover:bg-gray-100 transition cursor-pointer gap-4 shadow-sm hover:shadow-md">
+                  <div
+                    className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
+                  >
+                    {dpLetter}
+                  </div>
 
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-800">
-                    {chatRoomName}
-                  </span>
-                  <p className="text-gray-500 text-sm truncate italic max-w-[180px] sm:max-w-[240px] md:max-w-[300px] lg:max-w-[360px] xl:max-w-[420px]">
-                    {room.lastMessageContent
-                      ? `${room.lastMessageContent.slice(0, 25)}...`
-                      : "No messages yet"}
-                  </p>
-                </div>
-              </li>
-            </Link>
-          );
-        })}
-      </ul>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="font-semibold text-gray-800 text-[clamp(1rem, 2.5vw, 1.5rem)]">
+                      {chatRoomName}
+                    </span>
+                    {room.lastMessageContent !== lastMessage ? (
+                      <p className="text-gray-500 text-sm truncate italic w-full">
+                        {lastMessage}
+                      </p>
+                    ) : (
+                      <p className="text-gray-500 text-sm truncate italic w-full">
+                        {room.lastMessageContent
+                          ? `${room.lastMessageContent.slice(0, 25)}...`
+                          : "No messages yet"}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              </Link>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* Logout Button */}
+      <div className="px-4">
+        <button
+          onClick={() => logout()}
+          className="flex items-center mb-7 text-sm text-gray-600 hover:text-red-500"
+        >
+          <FiLogOut />
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

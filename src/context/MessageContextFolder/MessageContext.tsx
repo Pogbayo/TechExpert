@@ -25,7 +25,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string>("");
   const [isMessageSent, setIsMessageSent] = useState<boolean>(false);
   const { connection } = useSignal();
-
+  const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(
+    null
+  );
   const fetchMessagesByChatRoomId = useCallback(async (chatRoomId: string) => {
     setLoading(true);
     setError("");
@@ -57,27 +59,31 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
+  const [lastMessage, setLastMessage] = useState<string>("");
 
   useEffect(() => {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
         setmessagesByChatRoomId((prev) => [...prev, newMessage]);
+        setLastMessage(newMessage.content);
+        console.log("New message received:", newMessage);
+        console.log("Current chatRoomId:", newMessage.messageId);
       });
 
-      // connection.on("DeleteMessage", (deletedMessageId: string) => {
-      //   setMessages((prev) =>
-      //     prev.filter((message) => message.MessageId !== deletedMessageId)
-      //   );
-      // });
+      connection.on("ReceiveMessage", (newMessage: Message) => {
+        if (newMessage.chatRoomId === currentChatRoomId) {
+          setmessagesByChatRoomId((prev) => [...prev, newMessage]);
+        }
+      });
     }
 
     return () => {
       if (connection) {
         connection.off("ReceiveMessage");
-        connection.off("DeleteMessage");
+        // connection.off("DeleteMessage");
       }
     };
-  }, [connection]);
+  }, [connection, currentChatRoomId]);
 
   function clearMessages() {
     setmessagesByChatRoomId([]);
@@ -85,36 +91,30 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
   async function sendMessage(
     chatRoomId: string,
-    content: string,
-    isGroup: boolean
-  ): Promise<ApiResponse<boolean>> {
+    senderId: string,
+    content: string
+  ): Promise<void> {
     setLoading(true);
     setError("");
 
     try {
-      const response = await axios.post<ApiResponse<boolean>>(
-        `/api/message/send-message`,
+      const response = await axiosInstance.post<ApiResponse<Message>>(
+        `/message/send-message`,
         {
           chatRoomId,
+          senderId,
           content,
-          isGroup,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
         }
       );
       if (response.data.success) {
         setIsMessageSent(true);
-        return {
-          success: true,
-          data: true,
-          message: "Message sent successfully.",
-          error: "",
-        };
       } else {
         setError(response.data.message || "Failed to send message.");
-        return {
-          success: false,
-          data: false,
-          message: response.data.message || "Failed to send message.",
-        };
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -122,20 +122,8 @@ export function MessageProvider({ children }: { children: ReactNode }) {
           err.response?.data?.message ||
             "An error occurred while sending message."
         );
-        return {
-          success: false,
-          data: false,
-          message:
-            err.response?.data?.message ||
-            "An error occurred while sending message.",
-        };
       } else {
         setError("An unexpected error occurred.");
-        return {
-          success: false,
-          data: false,
-          message: "An unexpected error occurred.",
-        };
       }
     } finally {
       setLoading(false);
@@ -256,6 +244,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         clearMessages,
         sendMessage,
         deleteMessage,
+        currentChatRoomId,
+        lastMessage,
+        setCurrentChatRoomId,
       }}
     >
       {children}

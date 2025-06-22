@@ -56,3 +56,14 @@
   --color-input-text: #e0e7ff;       /* Input text color (lighter) */
   }
 }
+
+
+/* Hide scrollbar but allow scroll when necessary */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}

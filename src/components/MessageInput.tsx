@@ -2,15 +2,21 @@ import { useState } from "react";
 import type { MessageInputProps } from "../Types/ContextTypes/contextType";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { IoSendSharp } from "react-icons/io5";
+import { useAuth } from "../context/AuthContextFolder/useAuth";
 
-export default function MessageInput({ chatRoomId }: MessageInputProps) {
+export default function MessageInput({
+  chatRoomId,
+  isGroup,
+}: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { sendMessage } = useMessage();
+  const { user } = useAuth();
 
   const handleSend = async () => {
+    setMessage("");
     if (message.trim() !== "") {
-      await sendMessage(chatRoomId, message, true);
-      setMessage("");
+      await sendMessage(chatRoomId, user?.id ?? "", message);
+      console.log(isGroup);
     }
   };
 
@@ -27,7 +33,7 @@ export default function MessageInput({ chatRoomId }: MessageInputProps) {
         className="bg-blue-500 text-white p-2 rounded-r"
         onClick={handleSend}
       >
-        <IoSendSharp />
+        <IoSendSharp color="white" />
       </button>
     </div>
   );
