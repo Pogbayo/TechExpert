@@ -57,13 +57,12 @@
   }
 }
 
-
-/* Hide scrollbar but allow scroll when necessary */
+/* In your main CSS or global styles file */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

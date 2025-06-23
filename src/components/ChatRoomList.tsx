@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useEffect } from "react";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
-import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { FiLogOut } from "react-icons/fi";
 import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 
@@ -16,11 +15,11 @@ type ChatRoomListProps = {
 export default function ChatRoomList({
   showDpOnly = false,
   onSelectChatRoom,
+  chatRoomId,
   isMobileView,
 }: ChatRoomListProps) {
   const { chatRooms, getChatRoomsRelatedToUser } = useChatRoom();
   const { user, logout } = useAuth();
-  const { lastMessage } = useMessage();
 
   useEffect(() => {
     const handleFetchChatRooms = async () => {
@@ -54,7 +53,7 @@ export default function ChatRoomList({
 
   if (showDpOnly) {
     return (
-      <div className="flex items-center space-x-4 overflow-x-auto p-2">
+      <div className="flex items-center space-x-4 overflow-x-auto p-2 scrollbar-hide">
         {chatRooms.map((room, index) => {
           const chatRoomName = getChatRoomName(room);
           const dpLetter = chatRoomName.charAt(0).toUpperCase();
@@ -80,12 +79,26 @@ export default function ChatRoomList({
   return (
     <div
       className={`flex flex-col ${
-        isMobileView ? "h-screen" : "h-full"
-      } justify-between overflow-auto scrollbar-hide w-full`}
+        isMobileView && !chatRoomId ? "h-screen" : "h-full"
+      } justify-between overflow-auto scrollbar-hide w-full relative`}
     >
+      {/* Logout Button on Mobile */}
+      {isMobileView && (
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={() => logout()}
+            className="flex items-center text-sm text-gray-600 hover:text-red-500 bg-gray-200 p-2 rounded-full shadow"
+          >
+            <FiLogOut />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="mb-4 px-4">
-        <h3 className="text-lg font-bold mb-4">Chat Rooms</h3>
+      <div className="mb-4 px-4 mt-2">
+        <h3 className="text-lg font-bold mb-4 text-center md:text-left">
+          Chats
+        </h3>
         <ul className="space-y-3">
           {chatRooms.map((room, index) => {
             const chatRoomName = getChatRoomName(room);
@@ -98,28 +111,28 @@ export default function ChatRoomList({
                 to={`/chat/${room.chatRoomId}`}
                 className="block w-full"
               >
-                <li className="flex w-full items-center px-4 py-3 rounded-lg hover:bg-gray-100 transition cursor-pointer gap-4 shadow-sm hover:shadow-md">
+                <li
+                  className={`flex items-center gap-4 p-3 rounded-xl bg-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200 cursor-pointer ${
+                    isMobileView ? "border border-gray-200" : ""
+                  }`}
+                >
+                  {/* Avatar */}
                   <div
-                    className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
+                    className={`w-14 h-14 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
                   >
                     {dpLetter}
                   </div>
 
+                  {/* Chat Info */}
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="font-semibold text-gray-800 text-[clamp(1rem, 2.5vw, 1.5rem)]">
+                    <span className="font-semibold text-gray-800 text-[clamp(1rem, 2.5vw, 1.2rem)]">
                       {chatRoomName}
                     </span>
-                    {room.lastMessageContent !== lastMessage ? (
-                      <p className="text-gray-500 text-sm truncate italic w-full">
-                        {lastMessage}
-                      </p>
-                    ) : (
-                      <p className="text-gray-500 text-sm truncate italic w-full">
-                        {room.lastMessageContent
-                          ? `${room.lastMessageContent.slice(0, 25)}...`
-                          : "No messages yet"}
-                      </p>
-                    )}
+                    <p className="text-gray-500 text-sm truncate italic w-full">
+                      {room.lastMessageContent
+                        ? `${room.lastMessageContent.slice(0, 35)}...`
+                        : "No messages yet"}
+                    </p>
                   </div>
                 </li>
               </Link>
@@ -128,16 +141,18 @@ export default function ChatRoomList({
         </ul>
       </div>
 
-      {/* Logout Button */}
-      <div className="px-4">
-        <button
-          onClick={() => logout()}
-          className="flex items-center mb-7 text-sm text-gray-600 hover:text-red-500"
-        >
-          <FiLogOut />
-          Logout
-        </button>
-      </div>
+      {/* Logout Button on Desktop */}
+      {!isMobileView && (
+        <div className="px-4">
+          <button
+            onClick={() => logout()}
+            className="flex items-center mb-7 text-sm text-gray-600 hover:text-red-500"
+          >
+            <FiLogOut />
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   );
 }

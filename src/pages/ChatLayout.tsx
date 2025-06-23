@@ -3,7 +3,6 @@ import ChatWindow from "../components/ChatWindow";
 import ChatRoomList from "../components/ChatRoomList";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useEffect } from "react";
-
 import { useWindowSize } from "../components/useWindowSize";
 
 export default function ChatLayout() {
@@ -25,28 +24,26 @@ export default function ChatLayout() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 text-gray-900">
       {/* Chat List */}
-      <div
-        className={`${
-          isMobileView && chatRoomId ? "hidden" : "block"
-        } md:block w-full md:w-1/4 border-r border-gray-300 overflow-y-auto bg-white`}
-      >
-        <h1 className="text-3xl mb-6 font-bold px-4">Tech Xperts</h1>
-        {isMobileView ? (
-          ""
-        ) : (
-          <p className="text-sm text-gray-500 mb-4 px-4">
-            Click a chat room to open the conversation.
-          </p>
-        )}
-        <ChatRoomList />
-      </div>
+      {!isMobileView || (isMobileView && !chatRoomId) ? (
+        <div
+          className={`w-full md:w-1/4 border-r border-gray-300 overflow-y-auto bg-white`}
+        >
+          <h1 className="text-3xl mb-6 font-bold px-4">Spag Chat</h1>
+          {isMobileView ? null : (
+            <p className="text-sm text-gray-500 mb-4 px-4">
+              Click a chat room to open the conversation.
+            </p>
+          )}
+          <ChatRoomList isMobileView={isMobileView} chatRoomId={chatRoomId} />
+        </div>
+      ) : null}
 
       {/* Chat Window */}
       {!isMobileView || (isMobileView && chatRoomId) ? (
         <div className="flex-1 p-0 flex flex-col bg-gray-50 min-h-[50vh]">
           {chatRoomId && chatRoom ? (
             <ChatWindow chatRoom={chatRoom} />
-          ) : !isMobileView ? ( // 👈 Don't show fallback on mobile
+          ) : !isMobileView ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
               <h2 className="text-3xl font-bold">Welcome to SpagChat</h2>
               <p className="text-gray-500 text-lg">
