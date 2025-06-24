@@ -4,6 +4,7 @@ import Providers from "./context/ContextWrapper/Providers";
 import AuthPage from "./components/AuthPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { Toaster } from "react-hot-toast";
+import ProfilePage from "./components/ProfilePage";
 
 function App() {
   return (
@@ -31,7 +32,14 @@ function App() {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          }
+        />
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/chat" />} />
       </Routes>

@@ -38,3 +38,9 @@ export type ChatMessageListProps = {
 };
 
 
+export type ChatRoomListProps = {
+  showDpOnly?: boolean;
+  onSelectChatRoom?: (chatRoomId: string) => void;
+  chatRoomId?: string;
+  isMobileView: boolean;
+};

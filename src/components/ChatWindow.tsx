@@ -31,7 +31,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
 
   useEffect(() => {
     setCurrentChatRoomId(chatRoom.chatRoomId);
-  }, [chatRoom.chatRoomId, setCurrentChatRoomId]);
+  }, [chatRoom.chatRoomId, setCurrentChatRoomId, fetchMessagesByChatRoomId]);
 
   useEffect(() => {
     const handleFetchMessages = async () => {
@@ -79,6 +79,9 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
     navigate("/chat");
   };
 
+  const handleViewProfile = () => {
+    navigate("/profile");
+  };
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
@@ -97,7 +100,10 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
         </h2>
 
         {/* Profile Section */}
-        <div className="flex items-center space-x-2 cursor-pointer">
+        <div
+          className="flex items-center space-x-2 cursor-pointer"
+          onClick={handleViewProfile}
+        >
           <FaUserCircle />
           <span className="text-gray-600 text-sm font-medium hidden sm:block">
             {user?.username}

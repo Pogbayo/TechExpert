@@ -30,6 +30,8 @@ export default function AuthPage() {
       if (success.success) {
         toast.success("Login successful!");
         navigate("/chat");
+      } else {
+        toast.error(success.error ?? "");
       }
     } catch (err: unknown) {
       console.log(err);

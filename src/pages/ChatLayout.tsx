@@ -23,23 +23,23 @@ export default function ChatLayout() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 text-gray-900">
-      {/* Chat List */}
-      {!isMobileView || (isMobileView && !chatRoomId) ? (
-        <div
-          className={`w-full md:w-1/4 border-r border-gray-300 overflow-y-auto bg-white`}
-        >
-          <h1 className="text-3xl mb-6 font-bold px-4">Spag Chat</h1>
-          {isMobileView ? null : (
+      {/* Chat List Sidebar */}
+      {(!chatRoomId || !isMobileView) && (
+        <div className="w-full md:w-1/4 border-r border-gray-300 bg-white flex flex-col h-full">
+          <h1 className="text-3xl mt-4 mb-6 font-bold px-4">Spag Chat</h1>
+          {!chatRoomId && !isMobileView ? (
             <p className="text-sm text-gray-500 mb-4 px-4">
               Click a chat room to open the conversation.
             </p>
-          )}
+          ) : null}
+
+          {/* The child will now correctly handle the scroll */}
           <ChatRoomList isMobileView={isMobileView} chatRoomId={chatRoomId} />
         </div>
-      ) : null}
+      )}
 
       {/* Chat Window */}
-      {!isMobileView || (isMobileView && chatRoomId) ? (
+      {(chatRoomId || !isMobileView) && (
         <div className="flex-1 p-0 flex flex-col bg-gray-50 min-h-[50vh]">
           {chatRoomId && chatRoom ? (
             <ChatWindow chatRoom={chatRoom} />
@@ -56,7 +56,7 @@ export default function ChatLayout() {
             </div>
           ) : null}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
