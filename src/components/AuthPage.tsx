@@ -12,8 +12,9 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login, register } = useAuth();
-
+  const [userName, setUserName] = useState("");
   const resetForm = () => {
+    setUserName("");
     setEmail("");
     setPassword("");
     setConfirmPassword("");
@@ -52,7 +53,7 @@ export default function AuthPage() {
     }
     setLoading(true);
     try {
-      const success = await register(email, password);
+      const success = await register(userName, email, password);
       if (success.success) {
         toast.success("Registration successful!");
         setIsLogin(true);
@@ -155,6 +156,16 @@ export default function AuthPage() {
             <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
               Register
             </h2>
+            <div>
+              <label className="block mb-1 text-gray-600">Username:</label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+              />{" "}
+            </div>
+
             <div>
               <label className="block mb-1 text-gray-600">Email:</label>
               <input

@@ -3,19 +3,20 @@ import type { MessageInputProps } from "../Types/ContextTypes/contextType";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { IoSendSharp } from "react-icons/io5";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
+import { useParams } from "react-router-dom";
 
 export default function MessageInput({
-  chatRoomId,
+  // chatRoomId,
   isGroup,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { sendMessage } = useMessage();
   const { user } = useAuth();
-
+  const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const handleSend = async () => {
     setMessage("");
     if (message.trim() !== "") {
-      await sendMessage(chatRoomId, user?.id ?? "", message);
+      await sendMessage(chatRoomId ?? "", user?.id ?? "", message);
       console.log(isGroup);
     }
   };

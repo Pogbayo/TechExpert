@@ -175,11 +175,15 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
                       } ${isSender ? "cursor-pointer" : "cursor-default"}`}
                     >
                       <small>
-                        <i>
-                          {msg.sender?.id === user?.id
-                            ? ""
-                            : msg.sender?.username}
-                        </i>
+                        {chatRoom.isGroup ? (
+                          <i>
+                            {msg.sender?.id === user?.id
+                              ? ""
+                              : msg.sender?.username}
+                          </i>
+                        ) : (
+                          ""
+                        )}
                       </small>
                       <ChatBubble
                         senderId={msg.sender?.id ?? ""}
@@ -237,7 +241,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
         <MessageInput
-          chatRoomId={chatRoom.chatRoomId}
+          // chatRoomId={chatRoom.chatRoomId}
           isGroup={chatRoom?.isGroup ?? false}
         />
       </div>

@@ -1,8 +1,9 @@
-import { createContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useState, type ReactNode } from "react";
 import axios from "axios";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import type { UserContextType } from "../../Types/ContextTypes/contextType";
 import type { ApplicationUser } from "../../Types/EntityTypes/ApplicationUser";
+import axiosInstance from "../../IAxios/axiosInstance";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const UserContext = createContext<UserContextType | undefined>(
@@ -11,17 +12,29 @@ export const UserContext = createContext<UserContextType | undefined>(
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApplicationUser | null>(null);
+  const [nonMutualFriends, setNonMutualFriends] = useState<
+    ApplicationUser[] | null
+  >(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<ApplicationUser[]>([]);
   const [error, setError] = useState<string>("");
 
-  async function fetchUsers(numberOfUsers: number): Promise<void> {
+  const fetchUsers = useCallback(async (numberOfUsers: number) => {
     setIsLoading(true);
     try {
-      const response = axios.get<ApiResponse<ApplicationUser[]>>(
-        `/api/applicationuser/all-users/${numberOfUsers}`
+      const token = localStorage.getItem("token");
+
+      const response = await axiosInstance.get<ApiResponse<ApplicationUser[]>>(
+        `/applicationuser/all-users/${numberOfUsers}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      const data = (await response).data;
+
+      const data = response.data;
+
       if (data.success) {
         setUsers(data.data ?? []);
       } else {
@@ -39,7 +52,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
   async function getUserById(userId: string): Promise<void> {
     setIsLoading(true);
@@ -67,6 +80,40 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const fetchNonMutualFriends = useCallback(async (userId: string) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axiosInstance.get<ApiResponse<ApplicationUser[]>>(
+        `/chatroomuser/non-mutual-friends/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+
+      if (data.success) {
+        setNonMutualFriends(data.data ?? []);
+      } else {
+        setError(data.message || "Failed to fetch non-mutual friends.");
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message || "Error fetching non-mutual friends."
+        );
+      } else {
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -76,6 +123,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         error,
         user,
         getUserById,
+        nonMutualFriends,
+        fetchNonMutualFriends,
       }}
     >
       {children}

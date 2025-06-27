@@ -12,6 +12,7 @@ import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../IAxios/axiosInstance";
+import toast from "react-hot-toast";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -26,6 +27,9 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CHAT_ROOM_STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
   });
+  const [chatRoomsThatUserIsNotIn, setChatRoomsThatUserIsNotIn] = useState<
+    ChatRoomType[] | null
+  >(null);
 
   const [chatRooms, setChatRooms] = useState<ChatRoomType[]>(() => {
     const stored = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
@@ -87,13 +91,31 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const openChatRoom = useCallback(
+    async (chatRoomId: string) => {
+      navigate(`/chat/${chatRoomId}`);
+    },
+    [navigate]
+  );
+
   const createChatRoom = useCallback(
-    async (name: string, isGroup: boolean, memberIds: string[]) => {
+    async (
+      name: string,
+      isGroup: boolean,
+      memberIds: string[]
+    ): Promise<void> => {
       setIsLoading(true);
       setError(null);
       try {
-        await axiosInstance.post(`/api/chatroom`, { name, isGroup, memberIds });
+        const response = await axiosInstance.post<
+          ApiResponse<ChatRoomType | null>
+        >(`/chatroom`, { name, isGroup, memberIds });
         setLastAction("chatroom-created");
+        if (response.data.success && response.data.data) {
+          setChatRooms((prev) => [...prev, response.data.data as ChatRoomType]);
+          openChatRoom(response.data.data.chatRoomId);
+          toast.success(`${response.data.data.name} created successfully.`);
+        }
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           setError(
@@ -105,19 +127,26 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       } finally {
         setIsLoading(false);
       }
+      return;
     },
-    []
+    [openChatRoom]
   );
 
-  const getChatRoomByName = useCallback(async (chatRoomName: string) => {
+  const fetchChatRoomsWhereUserIsNotIn = useCallback(async (userId: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get<ApiResponse<ChatRoomType>>(
-        `/api/chatrooms/name/${chatRoomName}`
+      const response = await axiosInstance.get<ApiResponse<ChatRoomType[]>>(
+        `/chatroom/not-in/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
+        }
       );
       if (response.data.success) {
-        setChatRoom(response.data.data ?? null);
+        setChatRoomsThatUserIsNotIn(response.data.data ?? []);
+        console.log(chatRoomsThatUserIsNotIn);
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -128,7 +157,34 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getChatRoomByName = useCallback(
+    async (chatRoomName: string): Promise<ChatRoomType | null> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axiosInstance.get<ApiResponse<ChatRoomType>>(
+          `/chatroom/by-name/${chatRoomName}`
+        );
+        if (response.data.success) {
+          console.log("This is the fetched chatRoom", response.data.data);
+          return response.data.data ?? null;
+        }
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || "Failed to fetch chat room.");
+        } else {
+          setError("An unexpected error occurred.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+      return null;
+    },
+    []
+  );
 
   const getChatRoomById = useCallback(async (chatRoomId: string) => {
     setIsLoading(true);
@@ -200,20 +256,16 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const openChatRoom = useCallback(
-    async (chatRoomId: string) => {
-      navigate(`/chat/${chatRoomId}`);
-    },
-    [navigate]
-  );
-
   const getPrivateChatRoom = useCallback(
-    async (currentUserId: string, friendUserId: string): Promise<string> => {
+    async (
+      currentUserId: string,
+      friendUserId: string
+    ): Promise<ChatRoomType> => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get<ApiResponse<ChatRoomType>>(
-          `/api/chatroom/get-private-chat`,
+        const response = await axiosInstance.get<ApiResponse<ChatRoomType>>(
+          `/chatroom/get-private-chat`,
           {
             params: {
               currentUserId,
@@ -222,7 +274,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
           }
         );
         if (response.data.success && response.data.data) {
-          return response.data.data.chatRoomId;
+          console.log("This is the chatRoomId", response.data.data);
+          return response.data.data;
         } else {
           throw new Error("Failed to get private chat room.");
         }
@@ -279,6 +332,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     <ChatRoomContext.Provider
       value={{
         getPrivateChatRoom,
+        fetchChatRoomsWhereUserIsNotIn,
+        chatRoomsThatUserIsNotIn,
         openChatRoom,
         chatRoom,
         chatRooms,

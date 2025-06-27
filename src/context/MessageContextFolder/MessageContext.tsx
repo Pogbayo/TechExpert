@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   type ReactNode,
+  useRef,
 } from "react";
 import axios from "axios";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
@@ -11,6 +12,7 @@ import type { Message } from "../../Types/EntityTypes/Message";
 import type { MessageContextType } from "../../Types/ContextTypes/contextType";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 import axiosInstance from "../../IAxios/axiosInstance";
+import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const MessageContext = createContext<MessageContextType | undefined>(
@@ -28,6 +30,14 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(
     null
   );
+  const currentChatRoomIdRef = useRef<string | null>(null);
+  const navigate = useNavigate();
+
+  const updateCurrentChatRoomId = (id: string | null) => {
+    setCurrentChatRoomId(id);
+    currentChatRoomIdRef.current = id;
+  };
+
   const fetchMessagesByChatRoomId = useCallback(async (chatRoomId: string) => {
     setLoading(true);
     setError("");
@@ -44,7 +54,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         setmessagesByChatRoomId(response.data.data ?? []);
       } else {
         setError(response.data.message || "Failed to load messages.");
-        console.log("failed to load messages");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -59,20 +68,17 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
-  const [lastMessage, setLastMessage] = useState<string>("");
 
   useEffect(() => {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
-        setmessagesByChatRoomId((prev) => [...prev, newMessage]);
-        setLastMessage(newMessage.content);
-        console.log("New message received:", newMessage);
-        console.log("Current chatRoomId:", newMessage.messageId);
-      });
-
-      connection.on("ReceiveMessage", (newMessage: Message) => {
-        if (newMessage.chatRoomId === currentChatRoomId) {
+        if (newMessage.chatRoomId === currentChatRoomIdRef.current) {
           setmessagesByChatRoomId((prev) => [...prev, newMessage]);
+        } else {
+          console.log(
+            "Message received for another chat room:",
+            newMessage.chatRoomId
+          );
         }
       });
     }
@@ -80,10 +86,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     return () => {
       if (connection) {
         connection.off("ReceiveMessage");
-        // connection.off("DeleteMessage");
       }
     };
-  }, [connection, currentChatRoomId]);
+  }, [connection]);
 
   function clearMessages() {
     setmessagesByChatRoomId([]);
@@ -100,18 +105,16 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     try {
       const response = await axiosInstance.post<ApiResponse<Message>>(
         `/message/send-message`,
-        {
-          chatRoomId,
-          senderId,
-          content,
-        },
+        { chatRoomId, senderId, content },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
           },
         }
       );
-      if (response.data.success) {
+
+      if (response.data.success && response.data.data) {
+        // ✅ Do not update the UI here, wait for SignalR to push it
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");
@@ -142,7 +145,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
       if (response.data.success) {
         setmessagesByChatRoomId((prev) =>
-          prev.filter((message) => message.messageId != messageId)
+          prev.filter((message) => message.messageId !== messageId)
         );
         return {
           success: true,
@@ -192,7 +195,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
       if (response.data.success) {
         setmessagesByChatRoomId((prev) =>
-          prev.filter((message) => message.messageId != messageId)
+          prev.filter((message) => message.messageId !== messageId)
         );
         return {
           success: true,
@@ -232,6 +235,13 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }
+
+  function openChatRoom(chatRoomId: string) {
+    setCurrentChatRoomId(chatRoomId);
+    navigate(`/chat:${chatRoomId}`);
+    fetchMessagesByChatRoomId(chatRoomId);
+  }
+
   return (
     <MessageContext.Provider
       value={{
@@ -244,9 +254,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         clearMessages,
         sendMessage,
         deleteMessage,
+        openChatRoom,
         currentChatRoomId,
-        lastMessage,
-        setCurrentChatRoomId,
+        setCurrentChatRoomId: updateCurrentChatRoomId,
       }}
     >
       {children}

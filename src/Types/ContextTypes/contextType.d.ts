@@ -14,15 +14,15 @@ export type MessageContextType = {
   clearMessages: () => void;
   isMessageSent:boolean
   currentChatRoomId: string | null;
-  lastMessage:string | null;
-  setCurrentChatRoomId: React.Dispatch<React.SetStateAction<string | null>>;
-};
+  // lastMessage:string | null;
+  openChatRoom:(chatRoomId:string) =>void
+ setCurrentChatRoomId: (id: string | null) => void; };
 
 export type AuthContextType = {
   user: ApplicationUser | null;
   fetchedUser : ApplicationUser | null;
   login: (Email: string, password: string) => Promise<ApiResponse<LoginResponse>>;
-  register: (Email: string, password: string) => Promise<ApiResponse<string>>; 
+  register: (Username:string,Email: string, Password: string) => Promise<ApiResponse<string>>; 
   getUserById: (userId: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
@@ -43,6 +43,8 @@ export type UserContextType = {
   fetchUsers :(numberOfUsers : number) => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  nonMutualFriends: ApplicationUser[] | null;
+ fetchNonMutualFriends: (userId: string) => Promise<void>;
 }
 
 export type ChatRoomUserContextType = {
@@ -57,6 +59,8 @@ export type ChatRoomUserContextType = {
 export type ChatRoomContextType = {
   chatRoom: ChatRoomType | null;
   chatRooms: ChatRoomType[];
+  // searchedChatRoom:ChatRoomType[];
+  chatRoomsThatUserIsNotIn:chatRooms[] | null;
   lastAction: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null;
   setLastAction: (action: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null) => void;
   isLoading: boolean;
@@ -64,11 +68,12 @@ export type ChatRoomContextType = {
   openChatRoom:(chatRoomId:string) => Promise<void>;
   createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
-  getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<Void>
-  getChatRoomByName: (chatRoomName: string) => Promise<void>;
+  getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<ChatRoomType>
+  getChatRoomByName: (chatRoomName: string) => Promise<ChatRoomType | null>;
   getChatRoomById: (chatRoomId: string) => Promise<void>;
   deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
   updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
+  fetchChatRoomsWhereUserIsNotIn:(userId:string) => Promise<void>
 };
 
 export type LoginResponse = {
@@ -85,7 +90,7 @@ export type ChatWindowProps = {
 };
 
 export type MessageInputProps = {
-  chatRoomId: string;
+  // chatRoomId: string;
   isGroup:boolean
 };
 

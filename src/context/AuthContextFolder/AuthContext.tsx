@@ -80,13 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(
+    Username: string,
     Email: string,
     Password: string
   ): Promise<ApiResponse<string>> {
     try {
       const response = await axiosInstance.post<ApiResponse<string>>(
         "/applicationuser/register",
-        { Email, Password }
+        { Username, Email, Password }
       );
       return {
         success: true,
