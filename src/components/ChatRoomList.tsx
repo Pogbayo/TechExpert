@@ -39,6 +39,7 @@ export default function ChatRoomList({
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [error, setError] = useState("");
   const [plus, setPlus] = useState(true);
+
   useEffect(() => {
     const fetch = async () => {
       if (user?.id) await getChatRoomsRelatedToUser(user.id);

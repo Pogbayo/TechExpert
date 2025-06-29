@@ -13,6 +13,8 @@ import type { MessageContextType } from "../../Types/ContextTypes/contextType";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 import axiosInstance from "../../IAxios/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+// import { useAuth } from "../AuthContextFolder/useAuth";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const MessageContext = createContext<MessageContextType | undefined>(
@@ -37,7 +39,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setCurrentChatRoomId(id);
     currentChatRoomIdRef.current = id;
   };
-
+  // const { user } = useAuth();
   const fetchMessagesByChatRoomId = useCallback(async (chatRoomId: string) => {
     setLoading(true);
     setError("");
@@ -73,12 +75,12 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
         if (newMessage.chatRoomId === currentChatRoomIdRef.current) {
-          setmessagesByChatRoomId((prev) => [...prev, newMessage]);
-        } else {
-          console.log(
-            "Message received for another chat room:",
-            newMessage.chatRoomId
-          );
+          setmessagesByChatRoomId((prev) => {
+            const alreadyExists = prev.some(
+              (msg) => msg.messageId === newMessage.messageId
+            );
+            return alreadyExists ? prev : [...prev, newMessage];
+          });
         }
       });
     }
@@ -89,10 +91,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       }
     };
   }, [connection]);
-
-  function clearMessages() {
-    setmessagesByChatRoomId([]);
-  }
 
   async function sendMessage(
     chatRoomId: string,
@@ -114,10 +112,17 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success && response.data.data) {
-        // ✅ Do not update the UI here, wait for SignalR to push it
+        console.log(
+          "This is the message gotten from the backend too",
+          response.data.data
+        );
+        // toast.success(`Message sent by ${user?.username ?? ""}`);
+
+        // setmessagesByChatRoomId((prev) => [...prev, response.data.data!]);
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");
+        toast.error("failed to send message");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -140,8 +145,8 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.delete<ApiResponse<null>>(
-        `/api/messages/${messageId}`
+      const response = await axiosInstance.delete<ApiResponse<null>>(
+        `/messages/${messageId}`
       );
       if (response.data.success) {
         setmessagesByChatRoomId((prev) =>
@@ -240,6 +245,10 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setCurrentChatRoomId(chatRoomId);
     navigate(`/chat:${chatRoomId}`);
     fetchMessagesByChatRoomId(chatRoomId);
+  }
+
+  function clearMessages() {
+    setmessagesByChatRoomId([]);
   }
 
   return (

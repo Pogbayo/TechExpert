@@ -13,6 +13,7 @@ export default function MessageInput({
   const { sendMessage } = useMessage();
   const { user } = useAuth();
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
+
   const handleSend = async () => {
     setMessage("");
     if (message.trim() !== "") {

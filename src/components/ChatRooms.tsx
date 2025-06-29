@@ -5,17 +5,22 @@ import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { AnimatePresence, motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 export default function ChatRooms() {
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
     useUser();
   const { user } = useAuth();
-  const { getPrivateChatRoom, chatRoomsThatUserIsNotIn, createChatRoom } =
-    useChatRoom();
+  const {
+    getPrivateChatRoom,
+    chatRoomsThatUserIsNotIn,
+    createChatRoom,
+    showCreateModal,
+    setShowCreateModal,
+  } = useChatRoom();
   const { openChatRoom, clearMessages } = useMessage();
 
   const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [error, setError] = useState("");
@@ -48,14 +53,24 @@ export default function ChatRooms() {
       setError("Please select at least one user");
       return;
     }
+
     setError("");
     if (!user?.id) {
       setError("User ID is missing");
       return;
     }
     const memberIds = [user.id, ...selectedUsers];
+    console.log("This is the number of members", memberIds);
+    if (memberIds.length < 3) {
+      console.log("Users must be more than 2");
+      toast.error("Users must be more than 2");
+    }
+    if (selectedUsers.length < 2) {
+      setError("Please select more than two users");
+      toast.error(error);
+      return;
+    }
     await createChatRoom(groupName.trim(), true, memberIds);
-    setShowCreateModal(false);
     setGroupName("");
     setSelectedUsers([]);
   };

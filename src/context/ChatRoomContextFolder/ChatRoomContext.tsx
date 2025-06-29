@@ -35,6 +35,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const navigate = useNavigate();
   const { connection } = useSignal();
@@ -113,8 +114,13 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         setLastAction("chatroom-created");
         if (response.data.success && response.data.data) {
           setChatRooms((prev) => [...prev, response.data.data as ChatRoomType]);
-          openChatRoom(response.data.data.chatRoomId);
-          toast.success(`${response.data.data.name} created successfully.`);
+          setShowCreateModal(false);
+          setTimeout(() => {
+            if (response.data.data) {
+              openChatRoom(response.data.data.chatRoomId);
+            }
+          }, 2000);
+          toast.success(`${response.data.data?.name} created successfully.`);
         }
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
@@ -346,6 +352,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         getChatRoomByName,
         getChatRoomById,
         deleteChatRoomAsync,
+        showCreateModal,
+        setShowCreateModal,
         updateChatRoomName,
       }}
     >
