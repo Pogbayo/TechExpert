@@ -88,7 +88,10 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
       <div className="p-4 border-b bg-gray-100 flex items-center justify-between relative">
         {/* Back Button (Mobile Only) */}
         <button
-          onClick={navigateToChatRoute}
+          onClick={() => {
+            navigateToChatRoute();
+            fetchMessagesByChatRoomId(chatRoom.chatRoomId);
+          }}
           className="cursor-pointer block md:hidden"
         >
           <FaArrowLeft />
