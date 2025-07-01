@@ -37,7 +37,7 @@ export default function AuthPage() {
     } catch (err: unknown) {
       console.log(err);
       setError("Login failed.");
-      toast.success("Login failed!");
+      toast.error("Login failed!");
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,6 @@ export default function AuthPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    resetForm();
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -58,11 +57,12 @@ export default function AuthPage() {
         toast.success("Registration successful!");
         setIsLogin(true);
         setLoading(false);
+        resetForm();
       }
     } catch (err: unknown) {
       if (err && typeof err === "object" && "message" in err) {
         setError((err as { message: string }).message);
-        toast.success("Registration failed");
+        toast.error(error);
       } else {
         setError("Registration failed.");
       }

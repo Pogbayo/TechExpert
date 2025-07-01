@@ -5,6 +5,7 @@ import type { Message } from "../EntityTypes/Message";
 
 export type MessageContextType = {
   messagesByChatRoomId: Message[]; 
+  setmessagesByChatRoomId: React.Dispatch<React.SetStateAction<Message[]>>;
   fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
   sendMessage: (chatRoomId: string, senderId:string ,content:string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;

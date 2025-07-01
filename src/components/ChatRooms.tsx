@@ -5,7 +5,7 @@ import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { AnimatePresence, motion } from "framer-motion";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 
 export default function ChatRooms() {
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
@@ -19,6 +19,7 @@ export default function ChatRooms() {
     setShowCreateModal,
   } = useChatRoom();
   const { openChatRoom, clearMessages } = useMessage();
+  const [isLoading, setIsLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
   const [groupName, setGroupName] = useState("");
@@ -26,8 +27,16 @@ export default function ChatRooms() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchNonMutualFriends(user?.id ?? "");
-    fetchUsers(100);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await fetchNonMutualFriends(user?.id ?? "");
+        await fetchUsers(100);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, [fetchNonMutualFriends, fetchUsers, user?.id]);
 
   const handleOpenChatRoom = async (userId: string, friendId: string) => {
@@ -61,15 +70,15 @@ export default function ChatRooms() {
     }
     const memberIds = [user.id, ...selectedUsers];
     console.log("This is the number of members", memberIds);
-    if (memberIds.length < 3) {
-      console.log("Users must be more than 2");
-      toast.error("Users must be more than 2");
-    }
-    if (selectedUsers.length < 2) {
-      setError("Please select more than two users");
-      toast.error(error);
-      return;
-    }
+    // if (memberIds.length < 3) {
+    //   console.log("Users must be more than 2");
+    //   toast.error("Users must be more than 2");
+    // }
+    // if (selectedUsers.length < 2) {
+    //   setError("Please select more than two users");
+    //   toast.error(error);
+    //   return;
+    // }
     await createChatRoom(groupName.trim(), true, memberIds);
     setGroupName("");
     setSelectedUsers([]);
@@ -114,7 +123,11 @@ export default function ChatRooms() {
 
       {/* Scrollable List */}
       <div className="flex-1 mt-4 px-4 pb-6 overflow-y-auto scrollbar-hide">
-        {activeTab === "users" ? (
+        {isLoading ? (
+          <div className="text-center text-gray-500 mt-20">
+            {activeTab === "users" ? "Loading users..." : "Loading groups..."}
+          </div>
+        ) : activeTab === "users" ? (
           (nonMutualFriends?.length ?? 0) > 0 ? (
             <ul className="space-y-3">
               {nonMutualFriends?.map((u) => (
@@ -231,7 +244,11 @@ export default function ChatRooms() {
 
               <div className="flex justify-end gap-3 mt-6">
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setGroupName("");
+                    setShowCreateModal(false);
+                    setSelectedUsers([]);
+                  }}
                   className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
                 >
                   Cancel

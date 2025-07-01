@@ -32,7 +32,7 @@ export default function MessageInput({
         placeholder="Type your message..."
       />
       <button
-        className="bg-blue-500 text-white p-2 rounded-r"
+        className="bg-blue-500 text-white p-2 rounded-r cursor-pointer"
         onClick={handleSend}
       >
         <IoSendSharp color="white" />

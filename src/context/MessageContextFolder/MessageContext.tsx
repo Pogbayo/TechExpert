@@ -23,8 +23,16 @@ export const MessageContext = createContext<MessageContextType | undefined>(
 
 export function MessageProvider({ children }: { children: ReactNode }) {
   const [messagesByChatRoomId, setmessagesByChatRoomId] = useState<Message[]>(
-    []
+    () => {
+      const cached = localStorage.getItem("messagesCache");
+      return cached ? JSON.parse(cached) : [];
+    }
   );
+
+  useEffect(() => {
+    localStorage.setItem("messagesCache", JSON.stringify(messagesByChatRoomId));
+  }, [messagesByChatRoomId]);
+
   const [isLoading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isMessageSent, setIsMessageSent] = useState<boolean>(false);
@@ -245,6 +253,11 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setCurrentChatRoomId(chatRoomId);
     navigate(`/chat:${chatRoomId}`);
     fetchMessagesByChatRoomId(chatRoomId);
+    if (connection) {
+      connection.invoke("JoinRoom", chatRoomId).catch((err) => {
+        console.error("Failed to join chat room:", err);
+      });
+    }
   }
 
   function clearMessages() {
@@ -255,6 +268,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     <MessageContext.Provider
       value={{
         messagesByChatRoomId,
+        setmessagesByChatRoomId,
         fetchMessagesByChatRoomId,
         editMessage,
         isLoading,

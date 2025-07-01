@@ -113,7 +113,7 @@ export default function ChatRoomList({
 
     return (
       <Link key={room.chatRoomId} to={`/chat/${room.chatRoomId}`}>
-        <li className="flex items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]">
+        <li className="flex mb-3 items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]">
           <div
             className={`w-14 h-14 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
           >

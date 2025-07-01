@@ -18,6 +18,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
     editMessage,
     fetchMessagesByChatRoomId,
     setCurrentChatRoomId,
+    setmessagesByChatRoomId,
   } = useMessage();
 
   const { user } = useAuth();
@@ -51,7 +52,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
       return chatRoom.name;
     } else {
       const otherUser = chatRoom?.users.find((u) => u.id !== user?.id);
-      return otherUser ? otherUser.username.slice(0, 5) : "";
+      return otherUser ? otherUser.username : "";
     }
   };
 
@@ -76,12 +77,14 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
 
   let lastRenderedDate = "";
   const navigateToChatRoute = () => {
+    setmessagesByChatRoomId([]);
     navigate("/chat");
   };
 
   const handleViewProfile = () => {
     navigate("/profile");
   };
+
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
