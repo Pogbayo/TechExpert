@@ -4,8 +4,8 @@ import type { ChatRoomType } from "../EntityTypes/ChatRoom";
 import type { Message } from "../EntityTypes/Message";
 
 export type MessageContextType = {
-  messagesByChatRoomId: Message[]; 
-  setmessagesByChatRoomId: React.Dispatch<React.SetStateAction<Message[]>>;
+  messagesByChatRoomId: { [chatRoomId: string]: Message[] | null};
+  setmessagesByChatRoomId: React.Dispatch<React.SetStateAction<{ [chatRoomId: string]: Message[] | null }>>;
   fetchMessagesByChatRoomId: (chatRoomId: string) => Promise<void>;
   sendMessage: (chatRoomId: string, senderId:string ,content:string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<ApiResponse<boolean>>;
@@ -68,7 +68,7 @@ export type ChatRoomContextType = {
   error: string | null;
   showCreateModal:boolean;
  setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;  openChatRoom:(chatRoomId:string) => Promise<void>;
-  createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<void>;
+  createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<ChatRoomType | null>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
   getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<ChatRoomType>
   getChatRoomByName: (chatRoomName: string) => Promise<ChatRoomType | null>;
@@ -85,6 +85,7 @@ export type LoginResponse = {
 
 export type SignalContextType = {
   connection: signalR.HubConnection | null;
+  connectionStatus: string;
 };
 
 export type ChatWindowProps = {

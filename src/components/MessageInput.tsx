@@ -4,6 +4,8 @@ import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { IoSendSharp } from "react-icons/io5";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useParams } from "react-router-dom";
+import { useSignal } from "../context/SignalRContextFolder/useSignalR";
+import toast from "react-hot-toast";
 
 export default function MessageInput({
   // chatRoomId,
@@ -13,8 +15,11 @@ export default function MessageInput({
   const { sendMessage } = useMessage();
   const { user } = useAuth();
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
-
+  const { connectionStatus } = useSignal();
   const handleSend = async () => {
+    if (connectionStatus != "connected") {
+      toast.error("Error connecting to the ChatHub");
+    }
     setMessage("");
     if (message.trim() !== "") {
       await sendMessage(chatRoomId ?? "", user?.id ?? "", message);

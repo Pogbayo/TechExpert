@@ -7,9 +7,9 @@ import { useAuth } from "../context/AuthContextFolder/useAuth";
 import ChatBubble from "./ChatBubble";
 import { motion, AnimatePresence } from "framer-motion";
 import { addHours, format, isToday, isYesterday } from "date-fns";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 
 export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   const {
@@ -29,10 +29,14 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   const navigate = useNavigate();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  let lastRenderedDate = "";
+
+  // Get connection status from SignalContext
+  const { connectionStatus } = useSignal();
 
   useEffect(() => {
     setCurrentChatRoomId(chatRoom.chatRoomId);
-  }, [chatRoom.chatRoomId, setCurrentChatRoomId, fetchMessagesByChatRoomId]);
+  }, [chatRoom.chatRoomId, setCurrentChatRoomId]);
 
   useEffect(() => {
     const handleFetchMessages = async () => {
@@ -75,15 +79,80 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
     return format(date, "MMMM dd, yyyy");
   };
 
-  let lastRenderedDate = "";
   const navigateToChatRoute = () => {
-    setmessagesByChatRoomId([]);
     navigate("/chat");
+    setmessagesByChatRoomId({});
   };
 
   const handleViewProfile = () => {
     navigate("/profile");
   };
+
+  // Spinner component
+  const Spinner = () => (
+    <svg
+      className="animate-spin h-5 w-5 text-gray-600"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+  );
+
+  const renderConnectionStatus = () => {
+    if (connectionStatus === "connected") {
+      return extractChatRoomName(chatRoom);
+    }
+
+    const statusMap: Record<string, string> = {
+      connecting: "Connecting...",
+      reconnecting: "Reconnecting...",
+      disconnected: "Disconnected",
+    };
+
+    const isLoading =
+      connectionStatus === "connecting" || connectionStatus === "reconnecting";
+
+    return (
+      <div
+        className={`flex items-center space-x-2 ${
+          connectionStatus === "disconnected" ? "text-red-600" : ""
+        }`}
+      >
+        <span>{statusMap[connectionStatus]}</span>
+        <AnimatePresence>
+          {isLoading && (
+            <motion.div
+              key="spinner"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Spinner />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const currentMessages = messagesByChatRoomId[chatRoom.chatRoomId];
+  const hasMessages =
+    Array.isArray(currentMessages) && currentMessages.length > 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -92,17 +161,17 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
         {/* Back Button (Mobile Only) */}
         <button
           onClick={() => {
-            navigateToChatRoute();
             fetchMessagesByChatRoomId(chatRoom.chatRoomId);
+            navigateToChatRoute();
           }}
           className="cursor-pointer block md:hidden"
         >
           <FaArrowLeft />
         </button>
 
-        {/* Chat Room Name */}
-        <h2 className="font-extrabold text-black-700 uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1">
-          {extractChatRoomName(chatRoom)}
+        {/* Connection status or Chat Room Name */}
+        <h2 className="font-extrabold text-black-700 uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
+          {renderConnectionStatus()}
         </h2>
 
         {/* Profile Section */}
@@ -119,8 +188,8 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {messagesByChatRoomId.length > 0 ? (
-          [...messagesByChatRoomId]
+        {hasMessages ? (
+          currentMessages!
             .sort(
               (a, b) =>
                 new Date(a.timestamp ?? "").getTime() -
@@ -246,10 +315,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
 
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
-        <MessageInput
-          // chatRoomId={chatRoom.chatRoomId}
-          isGroup={chatRoom?.isGroup ?? false}
-        />
+        <MessageInput isGroup={chatRoom?.isGroup ?? false} />
       </div>
     </div>
   );

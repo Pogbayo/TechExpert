@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContextFolder/useUser";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { AnimatePresence, motion } from "framer-motion";
-// import toast from "react-hot-toast";
 
 export default function ChatRooms() {
+  const navigate = useNavigate();
+
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
     useUser();
   const { user } = useAuth();
@@ -43,6 +44,7 @@ export default function ChatRooms() {
     clearMessages();
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     openChatRoom(chatRoom.chatRoomId);
+    navigate(`/chat/${chatRoom.chatRoomId}`);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -68,20 +70,14 @@ export default function ChatRooms() {
       setError("User ID is missing");
       return;
     }
+
     const memberIds = [user.id, ...selectedUsers];
-    console.log("This is the number of members", memberIds);
-    // if (memberIds.length < 3) {
-    //   console.log("Users must be more than 2");
-    //   toast.error("Users must be more than 2");
-    // }
-    // if (selectedUsers.length < 2) {
-    //   setError("Please select more than two users");
-    //   toast.error(error);
-    //   return;
-    // }
-    await createChatRoom(groupName.trim(), true, memberIds);
-    setGroupName("");
-    setSelectedUsers([]);
+
+    const newGroup = await createChatRoom(groupName.trim(), true, memberIds);
+
+    if (newGroup) {
+      navigate(`/chat/${newGroup.chatRoomId}`);
+    }
   };
 
   return (
@@ -131,24 +127,23 @@ export default function ChatRooms() {
           (nonMutualFriends?.length ?? 0) > 0 ? (
             <ul className="space-y-3">
               {nonMutualFriends?.map((u) => (
-                <Link key={u.id} to={`/profile/${u.id}`}>
-                  <li
-                    onClick={() => handleOpenChatRoom(user?.id ?? "", u.id)}
-                    className="flex items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
-                  >
-                    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-xl flex-shrink-0">
-                      {u.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="font-semibold text-gray-950 text-base truncate">
-                        {u.username}
-                      </span>
-                      <p className="text-gray-500 text-sm italic truncate">
-                        send a message...
-                      </p>
-                    </div>
-                  </li>
-                </Link>
+                <li
+                  key={u.id}
+                  onClick={() => handleOpenChatRoom(user?.id ?? "", u.id)}
+                  className="flex items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+                >
+                  <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-xl flex-shrink-0">
+                    {u.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-gray-950 text-base truncate">
+                      {u.username}
+                    </span>
+                    <p className="text-gray-500 text-sm italic truncate">
+                      send a message...
+                    </p>
+                  </div>
+                </li>
               ))}
             </ul>
           ) : (

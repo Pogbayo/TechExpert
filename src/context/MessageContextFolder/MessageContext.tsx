@@ -14,7 +14,6 @@ import { useSignal } from "../SignalRContextFolder/useSignalR";
 import axiosInstance from "../../IAxios/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-// import { useAuth } from "../AuthContextFolder/useAuth";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const MessageContext = createContext<MessageContextType | undefined>(
@@ -22,15 +21,18 @@ export const MessageContext = createContext<MessageContextType | undefined>(
 );
 
 export function MessageProvider({ children }: { children: ReactNode }) {
-  const [messagesByChatRoomId, setmessagesByChatRoomId] = useState<Message[]>(
-    () => {
-      const cached = localStorage.getItem("messagesCache");
-      return cached ? JSON.parse(cached) : [];
-    }
-  );
+  const [messagesByChatRoomId, setmessagesByChatRoomId] = useState<{
+    [chatRoomId: string]: Message[] | null;
+  }>(() => {
+    const cached = localStorage.getItem("messagesCacheByRoom");
+    return cached ? JSON.parse(cached) : {};
+  });
 
   useEffect(() => {
-    localStorage.setItem("messagesCache", JSON.stringify(messagesByChatRoomId));
+    localStorage.setItem(
+      "messagesCacheByRoom",
+      JSON.stringify(messagesByChatRoomId)
+    );
   }, [messagesByChatRoomId]);
 
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -47,7 +49,18 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setCurrentChatRoomId(id);
     currentChatRoomIdRef.current = id;
   };
-  // const { user } = useAuth();
+
+  function updateMessages(chatRoomId: string, messages: Message[]) {
+    setmessagesByChatRoomId((prev) => {
+      const updated = {
+        ...prev,
+        [chatRoomId]: messages,
+      };
+      localStorage.setItem("messagesCacheByRoom", JSON.stringify(updated));
+      return updated;
+    });
+  }
+
   const fetchMessagesByChatRoomId = useCallback(async (chatRoomId: string) => {
     setLoading(true);
     setError("");
@@ -60,8 +73,10 @@ export function MessageProvider({ children }: { children: ReactNode }) {
           },
         }
       );
+
       if (response.data.success && response.data.data) {
-        setmessagesByChatRoomId(response.data.data ?? []);
+        updateMessages(chatRoomId, response.data.data);
+        // console.log(response.data.data && messagesByChatRoomId[chatRoomId]);
       } else {
         setError(response.data.message || "Failed to load messages.");
       }
@@ -78,27 +93,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (connection) {
-      connection.on("ReceiveMessage", (newMessage: Message) => {
-        if (newMessage.chatRoomId === currentChatRoomIdRef.current) {
-          setmessagesByChatRoomId((prev) => {
-            const alreadyExists = prev.some(
-              (msg) => msg.messageId === newMessage.messageId
-            );
-            return alreadyExists ? prev : [...prev, newMessage];
-          });
-        }
-      });
-    }
-
-    return () => {
-      if (connection) {
-        connection.off("ReceiveMessage");
-      }
-    };
-  }, [connection]);
 
   async function sendMessage(
     chatRoomId: string,
@@ -120,17 +114,21 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success && response.data.data) {
-        console.log(
-          "This is the message gotten from the backend too",
-          response.data.data
-        );
-        // toast.success(`Message sent by ${user?.username ?? ""}`);
+        console.log("Send Message function got here first");
 
-        // setmessagesByChatRoomId((prev) => [...prev, response.data.data!]);
+        // const newMessage = response.data.data;
+        // setmessagesByChatRoomId((prev) => {
+        //   const roomId = newMessage.chatRoomId;
+        //   const existingMessages = prev[roomId] || [];
+        //   return {
+        //     ...prev,
+        //     [roomId]: [...existingMessages, newMessage],
+        //   };
+        // });
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");
-        toast.error("failed to send message");
+        toast.error("Failed to send message");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -147,6 +145,37 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  useEffect(() => {
+    if (connection) {
+      connection.on("ReceiveMessage", (newMessage: Message) => {
+        if (newMessage.chatRoomId === currentChatRoomIdRef.current) {
+          console.log("Use effect got here first");
+          setmessagesByChatRoomId((prev) => {
+            const roomId = newMessage.chatRoomId;
+            const existingMessages = prev[roomId] || [];
+            const alreadyExists = existingMessages.some(
+              (msg) => msg.messageId === newMessage.messageId
+            );
+
+            if (alreadyExists) return prev;
+
+            const updatedMessages = [...existingMessages, newMessage];
+            return {
+              ...prev,
+              [roomId]: updatedMessages,
+            };
+          });
+        }
+      });
+    }
+
+    return () => {
+      if (connection) {
+        connection.off("ReceiveMessage");
+      }
+    };
+  }, [connection]);
+
   async function deleteMessage(
     messageId: string
   ): Promise<ApiResponse<boolean>> {
@@ -156,10 +185,25 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       const response = await axiosInstance.delete<ApiResponse<null>>(
         `/messages/${messageId}`
       );
+
       if (response.data.success) {
-        setmessagesByChatRoomId((prev) =>
-          prev.filter((message) => message.messageId !== messageId)
-        );
+        setmessagesByChatRoomId((prev) => {
+          const roomId = currentChatRoomIdRef.current;
+          if (!roomId || !prev[roomId]) return prev;
+
+          const updatedMessages = prev[roomId].filter(
+            (message) => message.messageId !== messageId
+          );
+
+          const updated = {
+            ...prev,
+            [roomId]: updatedMessages,
+          };
+
+          localStorage.setItem("messagesCacheByRoom", JSON.stringify(updated));
+          return updated;
+        });
+
         return {
           success: true,
           data: true,
@@ -203,38 +247,42 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.delete<ApiResponse<null>>(
-        `/api/messages/${messageId}`
+      const response = await axiosInstance.put<ApiResponse<null>>(
+        `/messages/edit/${messageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
+        }
       );
+
       if (response.data.success) {
-        setmessagesByChatRoomId((prev) =>
-          prev.filter((message) => message.messageId !== messageId)
-        );
+        fetchMessagesByChatRoomId(currentChatRoomIdRef.current ?? "");
         return {
           success: true,
           data: true,
-          message: "Message deleted successfully.",
+          message: "Message edited successfully.",
         };
       } else {
-        setError(response.data.message || "Failed to delete message.");
+        setError(response.data.message || "Failed to edit message.");
         return {
           success: false,
           data: false,
-          message: response.data.message || "Failed to delete message.",
+          message: response.data.message || "Failed to edit message.",
         };
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(
           err.response?.data?.message ||
-            "An error occurred while deleting message."
+            "An error occurred while editing message."
         );
         return {
           success: false,
           data: false,
           message:
             err.response?.data?.message ||
-            "An error occurred while deleting message.",
+            "An error occurred while editing message.",
         };
       } else {
         setError("An unexpected error occurred.");
@@ -251,17 +299,29 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
   function openChatRoom(chatRoomId: string) {
     setCurrentChatRoomId(chatRoomId);
+    currentChatRoomIdRef.current = chatRoomId;
+
     navigate(`/chat:${chatRoomId}`);
     fetchMessagesByChatRoomId(chatRoomId);
-    if (connection) {
-      connection.invoke("JoinRoom", chatRoomId).catch((err) => {
-        console.error("Failed to join chat room:", err);
-      });
-    }
+    // if (connection) {
+    //   connection.invoke("JoinRoom", chatRoomId).catch((err) => {
+    //     console.error("Failed to join chat room:", err);
+    //   });
+    // }
   }
 
   function clearMessages() {
-    setmessagesByChatRoomId([]);
+    const roomId = currentChatRoomIdRef.current;
+    if (!roomId) return;
+
+    setmessagesByChatRoomId((prev) => {
+      const updated = {
+        ...prev,
+        [roomId]: [],
+      };
+      localStorage.setItem("messagesCacheByRoom", JSON.stringify(updated));
+      return updated;
+    });
   }
 
   return (

@@ -14,13 +14,13 @@ export default function Providers({ children }: ProvidersProps) {
   return (
     <SignalProvider userId={user?.id ?? ""}>
       <UserProvider>
-        <ChatRoomProvider>
-          <ChatRoomUserProvider>
-            <MessageProvider>
+        <MessageProvider>
+          <ChatRoomProvider>
+            <ChatRoomUserProvider>
               <ChatUIProvider>{children}</ChatUIProvider>
-            </MessageProvider>
-          </ChatRoomUserProvider>
-        </ChatRoomProvider>
+            </ChatRoomUserProvider>
+          </ChatRoomProvider>
+        </MessageProvider>
       </UserProvider>
     </SignalProvider>
   );

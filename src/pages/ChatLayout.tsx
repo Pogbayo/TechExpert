@@ -7,38 +7,35 @@ import { useWindowSize } from "../components/useWindowSize";
 
 export default function ChatLayout() {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
-  const { getChatRoomById, chatRoom } = useChatRoom();
+  const { getChatRoomById, chatRoom, openChatRoom } = useChatRoom();
   const windowSize = useWindowSize();
-
   const isMobileView = windowSize <= 700;
 
   useEffect(() => {
-    const handleFetchChatRoom = async () => {
-      if (chatRoomId) {
-        await getChatRoomById(chatRoomId);
-      }
-    };
-    handleFetchChatRoom();
+    if (chatRoomId) {
+      getChatRoomById(chatRoomId);
+    }
   }, [chatRoomId, getChatRoomById]);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 text-gray-900">
-      {/* Chat List Sidebar */}
       {(!chatRoomId || !isMobileView) && (
         <div className="w-full md:w-1/4 border-r border-gray-300 bg-white flex flex-col h-full">
           <h1 className="text-3xl mt-4 mb-6 font-bold px-4">Spag Chat</h1>
-          {!chatRoomId && !isMobileView ? (
+          {!chatRoomId && !isMobileView && (
             <p className="text-sm text-gray-500 mb-4 px-4">
               Click a chat room to open the conversation.
             </p>
-          ) : null}
-
-          {/* The child will now correctly handle the scroll */}
-          <ChatRoomList isMobileView={isMobileView} chatRoomId={chatRoomId} />
+          )}
+          {/* Pass openChatRoom to ChatRoomList */}
+          <ChatRoomList
+            isMobileView={isMobileView}
+            chatRoomId={chatRoomId}
+            onSelectChatRoom={openChatRoom}
+          />
         </div>
       )}
 
-      {/* Chat Window */}
       {(chatRoomId || !isMobileView) && (
         <div className="flex-1 p-0 flex flex-col bg-gray-50 min-h-[50vh]">
           {chatRoomId && chatRoom ? (

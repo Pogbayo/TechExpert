@@ -13,6 +13,7 @@ import { useSignal } from "../SignalRContextFolder/useSignalR";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../IAxios/axiosInstance";
 import toast from "react-hot-toast";
+import { useMessage } from "../MessageContextFolder/useMessage";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -27,19 +28,20 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CHAT_ROOM_STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
   });
-  const [chatRoomsThatUserIsNotIn, setChatRoomsThatUserIsNotIn] = useState<
-    ChatRoomType[] | null
-  >(null);
 
   const [chatRooms, setChatRooms] = useState<ChatRoomType[]>(() => {
     const stored = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+
+  const [chatRoomsThatUserIsNotIn, setChatRoomsThatUserIsNotIn] = useState<
+    ChatRoomType[] | null
+  >(null);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const navigate = useNavigate();
   const { connection } = useSignal();
-
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     | "chatroom-updated"
     | null
   >(null);
+
+  const { fetchMessagesByChatRoomId } = useMessage();
 
   useEffect(() => {
     if (chatRoom) {
@@ -78,7 +82,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       );
       if (response.data.success) {
         setChatRooms(response.data.data ?? []);
-        console.log(chatRooms);
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -89,22 +92,64 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openChatRoom = useCallback(
     async (chatRoomId: string) => {
+      await fetchMessagesByChatRoomId(chatRoomId);
       navigate(`/chat/${chatRoomId}`);
     },
-    [navigate]
+    [fetchMessagesByChatRoomId, navigate]
   );
+
+  useEffect(() => {
+    if (!connection) return;
+
+    const handleNewChatRoom = (chatRoom: ChatRoomType) => {
+      setChatRooms((prev) => {
+        const exists = prev.some((r) => r.chatRoomId === chatRoom.chatRoomId);
+        if (exists) return prev;
+        return [...prev, chatRoom];
+      });
+
+      connection.invoke("JoinRoom", chatRoom.chatRoomId).catch((err) => {
+        console.error("Failed to join new chat room group:", err);
+      });
+    };
+
+    const handleChatRoomUpdated = (chatRoomId: string, newName: string) => {
+      setChatRooms((prev) =>
+        prev.map((room) =>
+          room.chatRoomId === chatRoomId ? { ...room, Name: newName } : room
+        )
+      );
+      setLastAction("chatroom-updated");
+    };
+
+    const handleChatRoomDeleted = (chatRoomId: string) => {
+      setChatRooms((prev) =>
+        prev.filter((room) => room.chatRoomId !== chatRoomId)
+      );
+      setLastAction("chatroom-deleted");
+    };
+
+    connection.on("ChatRoomCreated", handleNewChatRoom);
+    connection.on("ChatRoomUpdated", handleChatRoomUpdated);
+    connection.on("ChatRoomDeleted", handleChatRoomDeleted);
+
+    return () => {
+      connection.off("ChatRoomCreated", handleNewChatRoom);
+      connection.off("ChatRoomUpdated", handleChatRoomUpdated);
+      connection.off("ChatRoomDeleted", handleChatRoomDeleted);
+    };
+  }, [connection]);
 
   const createChatRoom = useCallback(
     async (
       name: string,
       isGroup: boolean,
       memberIds: string[]
-    ): Promise<void> => {
+    ): Promise<ChatRoomType | null> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -113,14 +158,12 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         >(`/chatroom`, { name, isGroup, memberIds });
         setLastAction("chatroom-created");
         if (response.data.success && response.data.data) {
-          setChatRooms((prev) => [...prev, response.data.data as ChatRoomType]);
+          const newRoom = response.data.data;
+          setChatRooms((prev) => [...prev, newRoom]);
           setShowCreateModal(false);
-          setTimeout(() => {
-            if (response.data.data) {
-              openChatRoom(response.data.data.chatRoomId);
-            }
-          }, 2000);
-          toast.success(`${response.data.data?.name} created successfully.`);
+          openChatRoom(newRoom.chatRoomId);
+          toast.success(`${newRoom.name} created successfully.`);
+          return newRoom;
         }
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
@@ -133,7 +176,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       } finally {
         setIsLoading(false);
       }
-      return;
+      return null;
     },
     [openChatRoom]
   );
@@ -152,7 +195,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       );
       if (response.data.success) {
         setChatRoomsThatUserIsNotIn(response.data.data ?? []);
-        console.log(chatRoomsThatUserIsNotIn);
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -163,7 +205,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getChatRoomByName = useCallback(
@@ -175,7 +216,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
           `/chatroom/by-name/${chatRoomName}`
         );
         if (response.data.success) {
-          console.log("This is the fetched chatRoom", response.data.data);
           return response.data.data ?? null;
         }
       } catch (err: unknown) {
@@ -280,7 +320,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
           }
         );
         if (response.data.success && response.data.data) {
-          console.log("This is the chatRoomId", response.data.data);
           return response.data.data;
         } else {
           throw new Error("Failed to get private chat room.");
@@ -294,45 +333,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     },
     []
   );
-
-  useEffect(() => {
-    if (!connection) return;
-
-    const handleChatRoomCreated = (newChatRoom: ChatRoomType) => {
-      console.log("Chat room created: ", newChatRoom);
-      const userId = localStorage.getItem("userId");
-      if (userId) {
-        getChatRoomsRelatedToUser(userId);
-      }
-      setLastAction("chatroom-created");
-    };
-
-    const handleChatRoomUpdated = (chatRoomId: string, newName: string) => {
-      setChatRooms((prev) =>
-        prev.map((room) =>
-          room.chatRoomId === chatRoomId ? { ...room, Name: newName } : room
-        )
-      );
-      setLastAction("chatroom-updated");
-    };
-
-    const handleChatRoomDeleted = (chatRoomId: string) => {
-      setChatRooms((prev) =>
-        prev.filter((room) => room.chatRoomId !== chatRoomId)
-      );
-      setLastAction("chatroom-deleted");
-    };
-
-    connection.on("ChatRoomCreated", handleChatRoomCreated);
-    connection.on("ChatRoomUpdated", handleChatRoomUpdated);
-    connection.on("ChatRoomDeleted", handleChatRoomDeleted);
-
-    return () => {
-      connection.off("ChatRoomCreated", handleChatRoomCreated);
-      connection.off("ChatRoomUpdated", handleChatRoomUpdated);
-      connection.off("ChatRoomDeleted", handleChatRoomDeleted);
-    };
-  }, [connection, getChatRoomsRelatedToUser]);
 
   return (
     <ChatRoomContext.Provider

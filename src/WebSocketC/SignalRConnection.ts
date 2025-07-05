@@ -3,7 +3,6 @@ import * as signalR from "@microsoft/signalr";
 let connection: signalR.HubConnection | null = null;
 
 export const createConnection = (userId: string) => {
-  // Always create a new connection per userId to avoid sharing an old instance
   if (connection) return connection;
 
   connection = new signalR.HubConnectionBuilder()
@@ -29,5 +28,5 @@ export const stopConnection = async () => {
       console.error("Error stopping connection:", err);
     }
   }
-  connection = null; // Reset the global connection
+  connection = null;
 };

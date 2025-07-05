@@ -1,4 +1,3 @@
-// axiosInstance.ts
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
@@ -8,7 +7,6 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// ✅ Optional: Proactive token expiration check
 function isTokenExpired(token: string): boolean {
   try {
     const decoded: { exp: number } = jwtDecode(token);
