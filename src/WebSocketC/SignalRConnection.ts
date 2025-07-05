@@ -5,8 +5,13 @@ let connection: signalR.HubConnection | null = null;
 export const createConnection = (userId: string) => {
   if (connection) return connection;
 
+  const baseUrl =
+    import.meta.env.MODE === "development"
+      ? "http://localhost:5154"
+      : "https://spagchat.runasp.net"
+
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(`http://localhost:5154/chathub?userId=${userId}`, {
+    .withUrl(`${baseUrl}/chathub?userId=${userId}`, {
       accessTokenFactory: () => localStorage.getItem("token") || "",
     })
     .withAutomaticReconnect()
