@@ -8,11 +8,16 @@ export const createConnection = (userId: string) => {
   const baseUrl =
     import.meta.env.MODE === "development"
       ? "http://localhost:5154"
-      : "https://spagchat.runasp.net"
+      : "https://spagchat.runasp.net";
 
   connection = new signalR.HubConnectionBuilder()
     .withUrl(`${baseUrl}/chathub?userId=${userId}`, {
       accessTokenFactory: () => localStorage.getItem("token") || "",
+
+      transport:
+        signalR.HttpTransportType.WebSockets |
+        signalR.HttpTransportType.LongPolling,
+      withCredentials: true, 
     })
     .withAutomaticReconnect()
     .build();
@@ -25,7 +30,10 @@ export const getConnection = () => {
 };
 
 export const stopConnection = async () => {
-  if (connection && connection.state !== signalR.HubConnectionState.Disconnected) {
+  if (
+    connection &&
+    connection.state !== signalR.HubConnectionState.Disconnected
+  ) {
     try {
       await connection.stop();
       console.log("SignalR connection stopped successfully.");
