@@ -1,4 +1,4 @@
-import type { ChatHeaderProps } from "../Types/chat";
+import type { ChatHeaderProps } from "../Types/PropsTypes/props";
 
 export default function ChatHeader({
   title,

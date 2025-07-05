@@ -12,7 +12,7 @@ export default function MutualFriends() {
     if (!user) return;
     const privateChatRoomId = await getPrivateChatRoom(user?.id, friendUserId);
     if (privateChatRoomId) {
-      openChatRoom(privateChatRoomId);
+      openChatRoom(privateChatRoomId.chatRoomId);
     }
   };
 

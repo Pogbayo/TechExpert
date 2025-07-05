@@ -1,6 +1,6 @@
 // src/components/ChatInput.tsx
 import { useState } from "react";
-import type { ChatInputProps } from "../Types/chat";
+import type { ChatInputProps } from "../Types/PropsTypes/props";
 
 export default function ChatInput({ onSend }: ChatInputProps) {
   const [input, setInput] = useState("");
