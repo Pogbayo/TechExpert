@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiLogOut, FiPlus, FiSearch } from "react-icons/fi";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { MdDarkMode, MdLightMode } from "react-icons/md";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
@@ -9,12 +10,13 @@ import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import type { Message } from "../Types/EntityTypes/Message";
 
-type ChatRoomListProps = {
-  showDpOnly?: boolean;
-  onSelectChatRoom?: (chatRoomId: string) => void;
-  chatRoomId?: string;
+export interface ChatRoomListProps {
+  chatRoomId: string;
+  onSelectChatRoom: (id: string) => void;
+  toggleDarkMode: () => void;
+  isDarkMode: boolean;
   isMobileView: boolean;
-};
+}
 
 const colors = [
   "bg-gray-500",
@@ -39,8 +41,10 @@ function getLastMessage(messages: Message[] | null | undefined) {
 }
 
 export default function ChatRoomList({
-  showDpOnly = false,
   onSelectChatRoom,
+  toggleDarkMode,
+  isDarkMode,
+  isMobileView,
 }: ChatRoomListProps) {
   const {
     chatRooms,
@@ -58,6 +62,13 @@ export default function ChatRoomList({
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [error, setError] = useState("");
   const [plus, setPlus] = useState(true);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (user?.id) getChatRoomsRelatedToUser(user.id);
@@ -110,8 +121,11 @@ export default function ChatRoomList({
       {[...Array(4)].map((_, i) => (
         <span
           key={i}
-          className="w-[2px] h-full bg-gray-500 rounded-sm animate-spike"
-          style={{ animationDelay: `${i * 0.1}s` }}
+          className="w-[2px] h-full rounded-sm animate-spike"
+          style={{
+            animationDelay: `${i * 0.1}s`,
+            backgroundColor: "var(--color-primary)",
+          }}
         />
       ))}
     </div>
@@ -130,6 +144,8 @@ export default function ChatRoomList({
       onSelectChatRoom?.(room.chatRoomId);
     };
 
+    const compactView = screenWidth >= 768 && screenWidth <= 862;
+
     return (
       <div
         key={room.chatRoomId}
@@ -139,20 +155,35 @@ export default function ChatRoomList({
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") handleClick();
         }}
-        className="flex mb-3 items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+        className="flex mb-3 items-start gap-4 p-[var(--space-3)] rounded-[var(--radius-lg)] bg-[var(--color-chat)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
       >
         <div
-          className={`w-14 h-14 flex items-center justify-center rounded-full text-white font-bold text-xl ${bgColor} flex-shrink-0`}
+          className={`${
+            compactView ? "w-10 h-10 text-lg" : "w-14 h-14 text-xl"
+          } flex items-center justify-center rounded-full text-white font-bold flex-shrink-0 ${bgColor}`}
         >
           {dpLetter}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
-            <span className="font-semibold text-gray-800 text-base truncate">
+            <span
+              className={`font-semibold truncate ${
+                compactView ? "text-sm" : ""
+              }`}
+              style={{
+                color: "var(--color-text)",
+                fontFamily: "var(--font-primary)",
+                fontSize: compactView ? "0.875rem" : "var(--font-size-base)",
+              }}
+              title={chatRoomName}
+            >
               {chatRoomName}
             </span>
-            <span className="text-xs text-gray-400 whitespace-nowrap">
+            <span
+              className="text-xs whitespace-nowrap"
+              style={{ color: "var(--color-secondary)" }}
+            >
               {lastMessage
                 ? new Date(lastMessage.timestamp ?? 0).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -161,22 +192,40 @@ export default function ChatRoomList({
                 : ""}
             </span>
           </div>
-          <p className="text-sm truncate italic">
+
+          <p
+            className={`truncate italic ${compactView ? "text-xs" : "text-sm"}`}
+            style={{ color: "var(--color-chat-text)" }}
+          >
             {lastMessage ? (
               room.isGroup ? (
                 <>
-                  <span className="text-blue-600 font-medium">
+                  <span
+                    className="font-medium"
+                    style={{
+                      color:
+                        lastMessage.sender?.id === user?.id
+                          ? "var(--color-primary)"
+                          : "var(--color-text)",
+                    }}
+                  >
                     {lastMessage.sender?.id === user?.id
                       ? "You"
                       : lastMessage.sender?.username}
                   </span>
-                  <span className="text-gray-500">: {lastMessage.content}</span>
+                  <span style={{ color: "var(--color-chat-text)" }}>
+                    : {lastMessage.content}
+                  </span>
                 </>
               ) : (
-                <span className="text-gray-500">{lastMessage.content}</span>
+                <span style={{ color: "var(--color-chat-text)" }}>
+                  {lastMessage.content}
+                </span>
               )
             ) : (
-              <span className="text-gray-400">No messages yet</span>
+              <span style={{ color: "var(--color-chat-text)" }}>
+                No messages yet
+              </span>
             )}
           </p>
         </div>
@@ -184,51 +233,20 @@ export default function ChatRoomList({
     );
   };
 
-  if (showDpOnly) {
-    return (
-      <div className="flex items-center space-x-4 overflow-x-auto p-2 scrollbar-hide">
-        {chatRooms.map((room, index) => {
-          const chatRoomName = getChatRoomName(room);
-          const dpLetter = chatRoomName.charAt(0).toUpperCase();
-          const bgColor = getRandomColor(index);
-
-          return (
-            <button
-              key={room.chatRoomId}
-              onClick={() => {
-                openChatRoom(room.chatRoomId);
-                onSelectChatRoom?.(room.chatRoomId);
-              }}
-              className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-lg ${bgColor} flex-shrink-0 hover:scale-110 active:scale-95 transition transform duration-200 shadow-md`}
-              aria-label={`Open chat room ${chatRoomName}`}
-            >
-              {dpLetter}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-full w-full bg-white relative overflow-hidden">
+    <div
+      className="flex flex-col h-full w-full bg-[var(--color-background)] relative overflow-hidden"
+      style={{ fontFamily: "var(--font-primary)" }}
+    >
       {/* Top Bar */}
-      <div className="flex justify-between items-center px-4 py-3 border-b bg-white shadow-sm sticky top-0 z-10">
-        {/* Logout */}
-        <div className="relative group z-[9000]">
-          <button
-            onClick={logout}
-            className="cursor-pointer text-gray-600 hover:text-red-500 bg-gray-100 p-2 rounded-full"
-          >
-            <FiLogOut />
-          </button>
-          <div className="absolute left-1/2 transform -translate-x-1/2 translate-y-2 bg-gray-200 text-black text-xs rounded-lg px-4 py-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-in-out pointer-events-none shadow z-[9000]">
-            Logout
-          </div>
-        </div>
-
-        {/* Title + Status */}
-        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+      <div
+        className="flex justify-between items-center px-[var(--space-4)] py-[var(--space-3)] border-b shadow-sm sticky top-0 z-10 bg-[var(--color-background)]"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        <h3
+          className="text-lg font-bold flex items-center gap-2"
+          style={{ color: "var(--color-text)" }}
+        >
           {connectionStatus === "connected" ? (
             showAllUsers ? (
               "All Users"
@@ -248,21 +266,39 @@ export default function ChatRoomList({
           )}
         </h3>
 
-        {/* Toggle Add Users */}
-        <div className="relative group z-[9000]">
+        <div className="flex items-center gap-2">
+          {isMobileView && (
+            <button
+              onClick={toggleDarkMode}
+              className="text-xl text-[var(--color-text)] bg-[var(--color-input-bg)] p-2 rounded-full"
+              aria-label="Toggle theme"
+              title="Toggle theme"
+            >
+              {isDarkMode ? <MdLightMode /> : <MdDarkMode />}
+            </button>
+          )}
+
+          <button
+            onClick={logout}
+            className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-red-500"
+            title="Logout"
+          >
+            <FiLogOut />
+          </button>
+
           <button
             onClick={() => {
               setShowAllUsers((prev) => !prev);
               setPlus((prev) => !prev);
             }}
-            className="cursor-pointer text-gray-600 hover:text-green-500 bg-gray-100 p-2 rounded-full"
+            className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-green-500"
+            title={plus ? "Add user" : "Back"}
           >
             {plus ? <FiPlus /> : <IoMdArrowRoundBack />}
           </button>
         </div>
       </div>
 
-      {/* Search */}
       {!showAllUsers && (
         <>
           <form
@@ -270,9 +306,9 @@ export default function ChatRoomList({
               e.preventDefault();
               handleSearch(searchText);
             }}
-            className="flex items-center bg-gray-100 mx-4 mt-4 px-3 py-2 rounded-full shadow-sm"
+            className="flex items-center bg-[var(--color-input-bg)] mx-[var(--space-4)] mt-[var(--space-4)] px-[var(--space-3)] py-[var(--space-2)] rounded-full shadow-sm"
           >
-            <button type="submit">
+            <button type="submit" className="text-[var(--color-text)]">
               <FiSearch />
             </button>
             <input
@@ -281,12 +317,13 @@ export default function ChatRoomList({
               onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search"
               className="bg-transparent outline-none flex-1 text-sm ml-2"
+              style={{ color: "var(--color-text)" }}
             />
           </form>
           {chatRoom && (
             <button
               onClick={handleReset}
-              className="text-sm text-blue-600 mt-2 ml-5"
+              className="text-sm text-[var(--color-primary)] mt-2 ml-5"
             >
               Clear search
             </button>
@@ -295,8 +332,7 @@ export default function ChatRoomList({
         </>
       )}
 
-      {/* Chat List */}
-      <div className="flex-1 mt-4 px-4 pb-6 overflow-y-auto scrollbar-hide">
+      <div className="flex-1 mt-[var(--space-4)] px-[var(--space-4)] pb-[var(--space-6)] overflow-y-auto scrollbar-hide">
         {showAllUsers ? (
           <ChatRooms />
         ) : (

@@ -43,4 +43,6 @@ export type ChatRoomListProps = {
   onSelectChatRoom?: (chatRoomId: string) => void;
   chatRoomId?: string;
   isMobileView: boolean;
+  toggleDarkMode?: () => void;  
+  isDarkMode?: boolean;  
 };

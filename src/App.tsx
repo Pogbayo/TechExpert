@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ChatLayout from "./pages/ChatLayout";
-import Providers from "./context/ContextWrapper/Providers";
 import AuthPage from "./components/AuthPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { Toaster } from "react-hot-toast";
 import ProfilePage from "./components/ProfilePage";
+import InnerProviders from "./components/InnerProviders";
 
 function App() {
   return (
-    <Providers>
+    <InnerProviders>
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* Default route: AuthPage */}
@@ -43,7 +43,7 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/chat" />} />
       </Routes>
-    </Providers>
+    </InnerProviders>
   );
 }
 

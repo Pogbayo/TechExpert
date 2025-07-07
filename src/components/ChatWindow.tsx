@@ -11,7 +11,16 @@ import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 
-export default function ChatWindow({ chatRoom }: ChatWindowProps) {
+interface ChatWindowPropsExtended extends ChatWindowProps {
+  isMobileView: boolean;
+  setShowChatWindow: (val: boolean) => void;
+}
+
+export default function ChatWindow({
+  chatRoom,
+  isMobileView,
+  setShowChatWindow,
+}: ChatWindowPropsExtended) {
   const {
     messagesByChatRoomId,
     deleteMessage,
@@ -26,12 +35,11 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
-  const navigate = useNavigate();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const navigate = useNavigate();
   let lastRenderedDate = "";
 
-  // Get connection status from SignalContext
   const { connectionStatus } = useSignal();
 
   useEffect(() => {
@@ -39,10 +47,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   }, [chatRoom.chatRoomId, setCurrentChatRoomId]);
 
   useEffect(() => {
-    const handleFetchMessages = async () => {
-      await fetchMessagesByChatRoomId(chatRoom.chatRoomId);
-    };
-    handleFetchMessages();
+    fetchMessagesByChatRoomId(chatRoom.chatRoomId);
   }, [chatRoom.chatRoomId, fetchMessagesByChatRoomId]);
 
   useEffect(() => {
@@ -52,12 +57,9 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   }, [messagesByChatRoomId]);
 
   const extractChatRoomName = (chatRoom: ChatRoomType | null) => {
-    if (chatRoom?.isGroup) {
-      return chatRoom.name;
-    } else {
-      const otherUser = chatRoom?.users.find((u) => u.id !== user?.id);
-      return otherUser ? otherUser.username : "";
-    }
+    if (chatRoom?.isGroup) return chatRoom.name;
+    const otherUser = chatRoom?.users.find((u) => u.id !== user?.id);
+    return otherUser ? otherUser.username : "";
   };
 
   const handleDelete = async (messageId: string) => {
@@ -79,19 +81,13 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
     return format(date, "MMMM dd, yyyy");
   };
 
-  const navigateToChatRoute = () => {
-    navigate("/chat");
-    setmessagesByChatRoomId({});
-  };
-
   const handleViewProfile = () => {
     navigate("/profile");
   };
 
-  // Spinner component
   const Spinner = () => (
     <svg
-      className="animate-spin h-5 w-5 text-gray-600"
+      className="animate-spin h-5 w-5 text-[var(--color-text)]"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -113,6 +109,12 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   );
 
   const renderConnectionStatus = () => {
+    if (!isMobileView) {
+      // On desktop: just show chat room name
+      return extractChatRoomName(chatRoom);
+    }
+
+    // On mobile: show connection status or chat room name
     if (connectionStatus === "connected") {
       return extractChatRoomName(chatRoom);
     }
@@ -129,7 +131,9 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
     return (
       <div
         className={`flex items-center space-x-2 ${
-          connectionStatus === "disconnected" ? "text-red-600" : ""
+          connectionStatus === "disconnected"
+            ? "text-red-600"
+            : "text-[var(--color-text)]"
         }`}
       >
         <span>{statusMap[connectionStatus]}</span>
@@ -157,37 +161,38 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="p-4 border-b bg-gray-100 flex items-center justify-between relative">
-        {/* Back Button (Mobile Only) */}
-        <button
-          onClick={() => {
-            fetchMessagesByChatRoomId(chatRoom.chatRoomId);
-            navigateToChatRoute();
-          }}
-          className="cursor-pointer block md:hidden"
-        >
-          <FaArrowLeft />
-        </button>
+      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative">
+        {isMobileView && (
+          <button
+            onClick={() => {
+              setShowChatWindow(false);
+              setmessagesByChatRoomId({});
+            }}
+            className="cursor-pointer block md:hidden"
+            aria-label="Back to chat list"
+            title="Back to chat list"
+          >
+            <FaArrowLeft />
+          </button>
+        )}
 
-        {/* Connection status or Chat Room Name */}
-        <h2 className="font-extrabold text-black-700 uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
+        <h2 className="font-extrabold uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
           {renderConnectionStatus()}
         </h2>
 
-        {/* Profile Section */}
         <div
           className="flex items-center space-x-2 cursor-pointer"
           onClick={handleViewProfile}
         >
           <FaUserCircle />
-          <span className="text-gray-600 text-sm font-medium hidden sm:block">
+          <span className="text-[var(--color-text)] text-sm font-medium hidden sm:block">
             {user?.username}
           </span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)]">
         {hasMessages ? (
           currentMessages!
             .sort(
@@ -207,7 +212,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
                 <div key={idx} className="relative group">
                   {showDateHeader && (
                     <div className="flex justify-center my-4">
-                      <span className="bg-gray-300 text-gray-700 text-xs px-3 py-1 rounded-full">
+                      <span className="bg-[var(--color-border)] text-[var(--color-text)] text-xs px-3 py-1 rounded-full">
                         {messageDate}
                       </span>
                     </div>
@@ -217,7 +222,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        className="border p-2 rounded flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-[var(--color-border)] bg-[var(--color-input-bg)] text-[var(--color-input-text)] p-2 rounded flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                       />
@@ -250,21 +255,15 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
                       } ${isSender ? "cursor-pointer" : "cursor-default"}`}
                     >
                       <small>
-                        {chatRoom.isGroup ? (
-                          <i>
-                            {msg.sender?.id === user?.id
-                              ? ""
-                              : msg.sender?.username}
-                          </i>
-                        ) : (
-                          ""
+                        {chatRoom.isGroup && msg.sender?.id !== user?.id && (
+                          <i>{msg.sender?.username}</i>
                         )}
                       </small>
                       <ChatBubble
                         senderId={msg.sender?.id ?? ""}
                         message={msg.content}
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[var(--color-text)] mt-1">
                         {messageTime.toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -280,7 +279,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.1 }}
-                        className="mt-2 bg-white border border-gray-200 rounded-lg shadow p-2 flex flex-col space-y-1 z-10 overflow-hidden"
+                        className="mt-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg shadow p-2 flex flex-col space-y-1 z-10 overflow-hidden"
                       >
                         <button
                           onClick={() => {
@@ -304,7 +303,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
               );
             })
         ) : (
-          <p className="m-auto text-gray-500">
+          <p className="m-auto text-[var(--color-text)] opacity-60">
             {messagesByChatRoomId
               ? "Send a message to begin conversation..."
               : "Loading messages..."}
@@ -314,7 +313,7 @@ export default function ChatWindow({ chatRoom }: ChatWindowProps) {
       </div>
 
       {/* Message Input */}
-      <div className="border-t p-4 bg-white">
+      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)]">
         <MessageInput isGroup={chatRoom?.isGroup ?? false} />
       </div>
     </div>

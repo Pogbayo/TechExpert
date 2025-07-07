@@ -81,15 +81,15 @@ export default function ChatRooms() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-[var(--color-background)] overflow-hidden">
       {/* Tabs */}
-      <div className="flex justify-around border-b bg-gray-50">
+      <div className="flex justify-around border-b bg-[var(--color-background)]">
         <button
           onClick={() => setActiveTab("users")}
           className={`py-2 flex-1 text-center ${
             activeTab === "users"
-              ? "border-b-2 border-blue-500 font-bold text-blue-600"
-              : "text-gray-600"
+              ? "border-b-2 border-[var(--color-primary)] font-bold text-[var(--color-input-text)]"
+              : "text-[var(--color-secondary)]"
           }`}
         >
           Users
@@ -98,8 +98,8 @@ export default function ChatRooms() {
           onClick={() => setActiveTab("groups")}
           className={`py-2 flex-1 text-center ${
             activeTab === "groups"
-              ? "border-b-2 border-blue-500 font-bold text-blue-600"
-              : "text-gray-600"
+              ? "border-b-2 border-[var(--color-primary)] font-bold text-[var(--color-input-text)]"
+              : "text-[var(--color-secondary)]"
           }`}
         >
           Groups
@@ -110,7 +110,7 @@ export default function ChatRooms() {
         <div className="flex justify-end px-4 mt-4">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded hover:opacity-90 transition"
           >
             + Create Group
           </button>
@@ -120,7 +120,7 @@ export default function ChatRooms() {
       {/* Scrollable List */}
       <div className="flex-1 mt-4 px-4 pb-6 overflow-y-auto scrollbar-hide">
         {isLoading ? (
-          <div className="text-center text-gray-500 mt-20">
+          <div className="text-center text-[var(--color-secondary)] mt-20">
             {activeTab === "users" ? "Loading users..." : "Loading groups..."}
           </div>
         ) : activeTab === "users" ? (
@@ -130,16 +130,16 @@ export default function ChatRooms() {
                 <li
                   key={u.id}
                   onClick={() => handleOpenChatRoom(user?.id ?? "", u.id)}
-                  className="flex items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+                  className="flex items-start gap-4 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
                 >
                   <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-xl flex-shrink-0">
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-gray-950 text-base truncate">
+                    <span className="font-semibold text-[var(--color-text)] text-base truncate">
                       {u.username}
                     </span>
-                    <p className="text-gray-500 text-sm italic truncate">
+                    <p className="text-[var(--color-chat-text)] text-sm italic truncate">
                       send a message...
                     </p>
                   </div>
@@ -147,7 +147,7 @@ export default function ChatRooms() {
               ))}
             </ul>
           ) : (
-            <div className="text-center text-gray-500 mt-20">
+            <div className="text-center text-[var(--color-secondary)] mt-20">
               There are no non-mutual friends to add.
             </div>
           )
@@ -155,15 +155,15 @@ export default function ChatRooms() {
           <ul className="space-y-3">
             {chatRoomsThatUserIsNotIn?.map((group) => (
               <Link key={group.chatRoomId} to={`/chat/${group.chatRoomId}`}>
-                <li className="flex items-start gap-4 p-3 rounded-xl bg-white shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]">
+                <li className="flex items-start gap-4 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]">
                   <div className="w-14 h-14 flex items-center justify-center rounded-full bg-green-400 text-white font-bold text-xl flex-shrink-0">
                     {group.name?.charAt(0).toUpperCase() || "G"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-gray-800 text-base truncate">
+                    <span className="font-semibold text-[var(--color-text)] text-base truncate">
                       {group.name || "Unnamed Group"}
                     </span>
-                    <p className="text-gray-500 text-sm italic truncate">
+                    <p className="text-[var(--color-chat-text)] text-sm italic truncate">
                       {group.lastMessageContent
                         ? `${group.lastMessageContent.slice(0, 40)}...`
                         : "No messages yet"}
@@ -174,7 +174,7 @@ export default function ChatRooms() {
             ))}
           </ul>
         ) : (
-          <div className="text-center text-gray-500 mt-20">
+          <div className="text-center text-[var(--color-input-text)] mt-20">
             There are no groups available to join.
           </div>
         )}
@@ -194,9 +194,13 @@ export default function ChatRooms() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6"
+              className="w-full max-w-md rounded-2xl shadow-xl p-6"
+              style={{
+                backgroundColor: "var(--color-background)",
+                color: "var(--color-text)",
+              }}
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              <h2 className="text-xl font-semibold mb-4 text-center">
                 Create a New Group
               </h2>
 
@@ -205,10 +209,21 @@ export default function ChatRooms() {
                 placeholder="Enter group name"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 rounded-lg mb-4 focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "var(--color-input-bg)",
+                  color: "var(--color-input-text)",
+                  border: "1px solid var(--color-border)",
+                }}
               />
 
-              <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 p-2 space-y-2 bg-gray-50">
+              <div
+                className="max-h-64 overflow-y-auto rounded-lg p-2 space-y-2"
+                style={{
+                  backgroundColor: "var(--color-chat-bg)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
                 <p>Select users to add</p>
                 {users
                   .filter((u) => u.id !== user?.id)
@@ -227,7 +242,7 @@ export default function ChatRooms() {
                         <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold">
                           {u.username.charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-sm text-gray-800 font-medium">
+                        <span className="text-sm font-medium text-[var(--color-text)]">
                           {u.username}
                         </span>
                       </div>
