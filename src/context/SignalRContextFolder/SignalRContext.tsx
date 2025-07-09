@@ -1,112 +1,156 @@
-import React, { createContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState, createContext, type ReactNode } from "react";
 import * as signalR from "@microsoft/signalr";
-import type { SignalContextType } from "../../Types/ContextTypes/contextType";
+import {
+  stopConnection,
+  createConnection,
+  connectionInstance,
+} from "../../WebSocketC/SignalRConnection";
 import axiosInstance from "../../IAxios/axiosInstance";
-import { createConnection } from "../../WebSocketC/SignalRConnection";
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const SignalContext = createContext<SignalContextType | undefined>(
-  undefined
-);
+interface SignalRContextType {
+  connection: signalR.HubConnection | null;
+  connected: boolean;
+  connectionStatus:
+    | "connecting"
+    | "connected"
+    | "disconnected"
+    | "reconnecting";
+}
 
-export const SignalProvider: React.FC<{
+const SignalContext = createContext<SignalRContextType>({
+  connection: null,
+  connected: false,
+  connectionStatus: "disconnected",
+});
+
+interface SignalRProviderProps {
   userId: string;
-  children: React.ReactNode;
-}> = ({ userId, children }) => {
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(
-    null
-  );
-  const [connectionStatus, setConnectionStatus] = useState<
-    "connecting" | "connected" | "disconnected"
-  >("disconnected");
+  children: ReactNode;
+}
 
-  const connectionRef = useRef<signalR.HubConnection | null>(null);
-  const isMounted = useRef(true);
+export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
+  const [connected, setConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "reconnecting"
+  >("disconnected");
+  const [isStarting, setIsStarting] = useState(false);
+
+  const setStateBasedOnConnection = (state: signalR.HubConnectionState) => {
+    switch (state) {
+      case signalR.HubConnectionState.Connected:
+        setConnected(true);
+        setConnectionStatus("connected");
+        break;
+      case signalR.HubConnectionState.Reconnecting:
+        setConnected(false);
+        setConnectionStatus("reconnecting");
+        break;
+      case signalR.HubConnectionState.Connecting:
+        setConnected(false);
+        setConnectionStatus("connecting");
+        break;
+      default:
+        setConnected(false);
+        setConnectionStatus("disconnected");
+        break;
+    }
+  };
 
   useEffect(() => {
-    isMounted.current = true;
-    let cancelled = false;
-
-    // ✅ Abort early if no valid userId (empty or undefined)
-    if (!userId || userId.trim() === "") {
-      console.log("🕓 No userId available. Skipping SignalR connection.");
-      return;
-    }
-
-    const newConnection = createConnection(userId);
-    connectionRef.current = newConnection;
-    setConnectionStatus("connecting");
-
-    const startConnection = async () => {
+    let isMounted = true;
+    const startSignalR = async () => {
+      if (isStarting) {
+        console.log("⏳ SignalR already starting, skipping...");
+        return;
+      }
+      setIsStarting(true);
       try {
-        if (newConnection.state !== signalR.HubConnectionState.Disconnected) {
-          console.warn(
-            "🚫 Cannot start connection: not in 'Disconnected' state."
-          );
-          return;
-        }
+        setConnectionStatus("connecting");
+        await stopConnection();
+        const connection = createConnection(userId);
+        console.log("🔌 Created new connection:", connection);
 
-        await newConnection.start();
+        // Event listeners
+        connection.onclose((error) => {
+          console.warn("❌ Connection closed", error);
+          if (isMounted) {
+            setConnected(false);
+            setConnectionStatus("disconnected");
+          }
+        });
 
-        if (!isMounted.current || cancelled) {
-          await newConnection.stop();
-          return;
-        }
+        connection.onreconnecting((error) => {
+          console.warn("🔄 Reconnecting...", error);
+          if (isMounted) {
+            setConnected(false);
+            setConnectionStatus("reconnecting");
+          }
+        });
 
-        console.log("✅ Connected to SignalR hub.");
-        setConnection(newConnection);
-        setConnectionStatus("connected");
+        connection.onreconnected((connectionId) => {
+          console.log("✅ Reconnected with ID:", connectionId);
+          if (isMounted) {
+            setStateBasedOnConnection(connection.state);
+          }
+        });
 
-        newConnection.onreconnected(async () => {
-          console.log("🔄 Reconnected, rejoining rooms...");
+        if (connection.state === signalR.HubConnectionState.Disconnected) {
+          await connection.start();
+          console.log("✅ SignalR started! State:", connection.state);
 
+          // Sync local state after connection
+          if (isMounted) {
+            setStateBasedOnConnection(connection.state);
+          }
+          console.log("This is line 105", connection.state);
+          // Join chat rooms
           try {
             const token = localStorage.getItem("token");
-            const response = await axiosInstance.get<string[]>(
-              `/chatrooms/${userId}`,
+            const { data: chatRoomIds } = await axiosInstance.get<string[]>(
+              `/chatroom/chatroomsids/${userId}`,
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-
-            for (const roomId of response.data) {
-              await newConnection.invoke("JoinRoom", roomId);
-              console.log(`📢 Rejoined chat room: ${roomId}`);
+            for (const roomId of chatRoomIds) {
+              await connection.invoke("JoinRoom", roomId);
+              console.log(`📢 Joined chat room: ${roomId}`);
             }
-          } catch (error) {
-            console.error("⚠️ Reconnection error:", error);
+          } catch (err) {
+            console.error("⚠ Failed to join chat rooms:", err);
           }
-        });
-      } catch (error) {
-        console.error("❌ SignalR Connection Error:", error);
-        setConnectionStatus("disconnected");
+        } else {
+          if (isMounted) {
+            setStateBasedOnConnection(connection.state);
+          }
+        }
+      } catch (err) {
+        console.error("🚫 Failed to start SignalR:", err);
+        if (isMounted) {
+          setConnected(false);
+          setConnectionStatus("disconnected");
+        }
+      } finally {
+        setIsStarting(false);
       }
     };
-
-    startConnection();
-
+    startSignalR();
     return () => {
-      cancelled = true;
-      isMounted.current = false;
-
-      if (connectionRef.current) {
-        connectionRef.current
-          .stop()
-          .then(() => {
-            console.log("🛑 SignalR connection stopped");
-            setConnection(null);
-            setConnectionStatus("disconnected");
-          })
-          .catch((err) =>
-            console.error("Error stopping SignalR connection", err)
-          );
-      }
+      isMounted = false;
+      stopConnection();
+      setConnected(false);
+      setConnectionStatus("disconnected");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return (
-    <SignalContext.Provider value={{ connection, connectionStatus }}>
+    <SignalContext.Provider
+      value={{ connection: connectionInstance(), connected, connectionStatus }}
+    >
       {children}
     </SignalContext.Provider>
   );
 };
+
+export default SignalContext;

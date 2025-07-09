@@ -7,24 +7,24 @@ import { useParams } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import toast from "react-hot-toast";
 
-export default function MessageInput({
-  // chatRoomId,
-  isGroup,
-}: MessageInputProps) {
+export default function MessageInput({ isGroup }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { sendMessage } = useMessage();
   const { user } = useAuth();
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
-  const { connectionStatus } = useSignal();
+  const { connection } = useSignal();
+
   const handleSend = async () => {
-    if (connectionStatus != "connected") {
-      toast.error("Error connecting to the ChatHub");
+    if (connection?.state !== "Connected") {
+      toast.error("Error: Not connected to the chat server.");
+      return;
     }
+
+    if (message.trim() === "") return;
+    console.group(isGroup);
+
+    await sendMessage(chatRoomId ?? "", user?.id ?? "", message);
     setMessage("");
-    if (message.trim() !== "") {
-      await sendMessage(chatRoomId ?? "", user?.id ?? "", message);
-      console.log(isGroup);
-    }
   };
 
   return (

@@ -10,10 +10,9 @@ import type { ChatRoomContextType } from "../../Types/ContextTypes/contextType";
 import type { ChatRoomType } from "../../Types/EntityTypes/ChatRoom";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
-import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../IAxios/axiosInstance";
 import toast from "react-hot-toast";
-import { useMessage } from "../MessageContextFolder/useMessage";
+// import { useMessage } from "../MessageContextFolder/useMessage";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -33,14 +32,14 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
-
+  // console.log(chatRooms.length);
   const [chatRoomsThatUserIsNotIn, setChatRoomsThatUserIsNotIn] = useState<
     ChatRoomType[] | null
   >(null);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { connection } = useSignal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +53,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     | null
   >(null);
 
-  const { fetchMessagesByChatRoomId } = useMessage();
+  // const { fetchMessagesByChatRoomId } = useMessage();
 
   useEffect(() => {
     if (chatRoom) {
@@ -94,12 +93,22 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // const openChatRoom = useCallback(
+  //   async (chatRoomId: string) => {
+  //     await fetchMessagesByChatRoomId(chatRoomId);
+  //     navigate(`/chat/${chatRoomId}`);
+  //   },
+  //   [fetchMessagesByChatRoomId, navigate]
+  // );
+
   const openChatRoom = useCallback(
-    async (chatRoomId: string) => {
-      await fetchMessagesByChatRoomId(chatRoomId);
-      navigate(`/chat/${chatRoomId}`);
+    async (chatRoomId: string): Promise<void> => {
+      const room = chatRooms.find((room) => room.chatRoomId === chatRoomId);
+      if (room) {
+        setChatRoom(room);
+      }
     },
-    [fetchMessagesByChatRoomId, navigate]
+    [chatRooms]
   );
 
   useEffect(() => {

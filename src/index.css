@@ -14,7 +14,7 @@
   --color-input-bg: #ffffff; /* change from light blue to white */
   --color-input-text: #111827;      /* Input text color (whiteish) */
  
-
+  --color-userDivBackground:#454545;
     /* Font Sizes */
   --font-size-xs: 0.75rem;   /* 12px */
   --font-size-sm: 0.875rem;  /* 14px */

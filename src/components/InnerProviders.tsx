@@ -11,7 +11,7 @@ export default function InnerProviders({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  console.log(user?.id);
+  // console.log(user?.id);
   if (!user?.id) return <>{children}</>;
 
   return (

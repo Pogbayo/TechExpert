@@ -19,7 +19,7 @@ export default function ChatRooms() {
     showCreateModal,
     setShowCreateModal,
   } = useChatRoom();
-  const { openChatRoom, clearMessages } = useMessage();
+  const { openChatRoom } = useMessage();
   const [isLoading, setIsLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
@@ -41,10 +41,10 @@ export default function ChatRooms() {
   }, [fetchNonMutualFriends, fetchUsers, user?.id]);
 
   const handleOpenChatRoom = async (userId: string, friendId: string) => {
-    clearMessages();
+    // clearMessages();
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     openChatRoom(chatRoom.chatRoomId);
-    navigate(`/chat/${chatRoom.chatRoomId}`);
+    // navigate(`/chat/${chatRoom.chatRoomId}`);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -130,7 +130,7 @@ export default function ChatRooms() {
                 <li
                   key={u.id}
                   onClick={() => handleOpenChatRoom(user?.id ?? "", u.id)}
-                  className="flex items-start gap-4 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+                  className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
                 >
                   <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-xl flex-shrink-0">
                     {u.username.charAt(0).toUpperCase()}
@@ -139,9 +139,9 @@ export default function ChatRooms() {
                     <span className="font-semibold text-[var(--color-text)] text-base truncate">
                       {u.username}
                     </span>
-                    <p className="text-[var(--color-chat-text)] text-sm italic truncate">
+                    {/* <p className="text-[var(--color-chat-text)] text-sm italic truncate">
                       send a message...
-                    </p>
+                    </p> */}
                   </div>
                 </li>
               ))}

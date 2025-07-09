@@ -25,6 +25,8 @@ export const createConnection = (userId: string) => {
   return connection;
 };
 
+export const connectionInstance = () => connection;
+
 export const getConnection = () => {
   return connection;
 };

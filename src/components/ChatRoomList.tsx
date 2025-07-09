@@ -9,6 +9,7 @@ import ChatRooms from "./ChatRooms";
 import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import type { Message } from "../Types/EntityTypes/Message";
+import * as signalR from "@microsoft/signalr";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
@@ -55,17 +56,16 @@ export default function ChatRoomList({
 
   const { user, logout } = useAuth();
   const { messagesByChatRoomId, fetchMessagesByChatRoomId } = useMessage();
-  const { connectionStatus } = useSignal();
-
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [error, setError] = useState("");
   const [plus, setPlus] = useState(true);
+  const { connection } = useSignal();
+  const connectionStatus = connection?.state;
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-
   useEffect(() => {
-    const handleResize = () => setScreenWidth(window.innerWidth);
+    const handleResize: () => void = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -155,7 +155,7 @@ export default function ChatRoomList({
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") handleClick();
         }}
-        className="flex mb-3 items-start gap-4 p-[var(--space-3)] rounded-[var(--radius-lg)] bg-[var(--color-chat)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+        className="flex mb-3 items-start gap-4 p-[var(--space-3)] rounded-[var(--radius-lg)] bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
       >
         <div
           className={`${
@@ -223,7 +223,7 @@ export default function ChatRoomList({
                 </span>
               )
             ) : (
-              <span style={{ color: "var(--color-chat-text)" }}>
+              <span style={{ color: "var(--color-secondary)" }}>
                 No messages yet
               </span>
             )}
@@ -247,18 +247,15 @@ export default function ChatRoomList({
           className="text-lg font-bold flex items-center gap-2"
           style={{ color: "var(--color-text)" }}
         >
-          {connectionStatus === "connected" ? (
+          {connectionStatus === signalR.HubConnectionState.Connected ? (
             showAllUsers ? (
               "All Users"
             ) : (
               "Chats"
             )
-          ) : connectionStatus === "connecting" ||
-            connectionStatus === "reconnecting" ? (
+          ) : connectionStatus === signalR.HubConnectionState.Connecting ? (
             <>
-              {connectionStatus === "connecting"
-                ? "Connecting"
-                : "Reconnecting"}
+              Connecting
               <Spinner />
             </>
           ) : (

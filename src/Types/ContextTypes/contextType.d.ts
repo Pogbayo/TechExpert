@@ -67,7 +67,7 @@ export type ChatRoomContextType = {
   isLoading: boolean;
   error: string | null;
   showCreateModal:boolean;
- setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;  openChatRoom:(chatRoomId:string) => Promise<void>;
+  setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;  openChatRoom:(chatRoomId:string) => Promise<void>;
   createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<ChatRoomType | null>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
   getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<ChatRoomType>
@@ -85,7 +85,7 @@ export type LoginResponse = {
 
 export type SignalContextType = {
   connection: signalR.HubConnection | null;
-  connectionStatus: string;
+  connectionStatus: "connecting" | "connected" | "disconnected" | "reconnecting";
 };
 
 export type ChatWindowProps = {

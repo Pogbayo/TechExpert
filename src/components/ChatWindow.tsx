@@ -10,6 +10,7 @@ import { addHours, format, isToday, isYesterday } from "date-fns";
 import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
+import * as signalR from "@microsoft/signalr";
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -40,7 +41,8 @@ export default function ChatWindow({
   const navigate = useNavigate();
   let lastRenderedDate = "";
 
-  const { connectionStatus } = useSignal();
+  const { connection } = useSignal();
+  const connectionStatus = connection?.state;
 
   useEffect(() => {
     setCurrentChatRoomId(chatRoom.chatRoomId);
@@ -115,28 +117,29 @@ export default function ChatWindow({
     }
 
     // On mobile: show connection status or chat room name
-    if (connectionStatus === "connected") {
+    if (connectionStatus === signalR.HubConnectionState.Connected) {
       return extractChatRoomName(chatRoom);
     }
 
     const statusMap: Record<string, string> = {
-      connecting: "Connecting...",
-      reconnecting: "Reconnecting...",
-      disconnected: "Disconnected",
+      [signalR.HubConnectionState.Connecting]: "Connecting...",
+      [signalR.HubConnectionState.Reconnecting]: "Reconnecting...",
+      [signalR.HubConnectionState.Disconnected]: "Disconnected",
     };
 
     const isLoading =
-      connectionStatus === "connecting" || connectionStatus === "reconnecting";
+      connectionStatus === signalR.HubConnectionState.Connecting ||
+      connectionStatus === signalR.HubConnectionState.Reconnecting;
 
     return (
       <div
         className={`flex items-center space-x-2 ${
-          connectionStatus === "disconnected"
+          connectionStatus === signalR.HubConnectionState.Disconnected
             ? "text-red-600"
             : "text-[var(--color-text)]"
         }`}
       >
-        <span>{statusMap[connectionStatus]}</span>
+        <span>{statusMap[connectionStatus ?? ""]}</span>
         <AnimatePresence>
           {isLoading && (
             <motion.div
@@ -191,7 +194,7 @@ export default function ChatWindow({
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)]">
         {hasMessages ? (
           currentMessages!
