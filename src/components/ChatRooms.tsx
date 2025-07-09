@@ -3,10 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContextFolder/useUser";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
-import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { AnimatePresence, motion } from "framer-motion";
 
-export default function ChatRooms() {
+export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSelected?: (chatRoomId: string) => void }) {
   const navigate = useNavigate();
 
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
@@ -19,7 +18,7 @@ export default function ChatRooms() {
     showCreateModal,
     setShowCreateModal,
   } = useChatRoom();
-  const { openChatRoom } = useMessage();
+  const { openChatRoom } = useChatRoom();
   const [isLoading, setIsLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
@@ -44,6 +43,7 @@ export default function ChatRooms() {
     // clearMessages();
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     openChatRoom(chatRoom.chatRoomId);
+    if (onUserOrGroupSelected) onUserOrGroupSelected(chatRoom.chatRoomId);
     // navigate(`/chat/${chatRoom.chatRoomId}`);
   };
 
@@ -76,6 +76,7 @@ export default function ChatRooms() {
     const newGroup = await createChatRoom(groupName.trim(), true, memberIds);
 
     if (newGroup) {
+      if (onUserOrGroupSelected) onUserOrGroupSelected(newGroup.chatRoomId);
       navigate(`/chat/${newGroup.chatRoomId}`);
     }
   };

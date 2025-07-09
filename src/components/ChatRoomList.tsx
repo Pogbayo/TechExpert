@@ -331,7 +331,12 @@ export default function ChatRoomList({
 
       <div className="flex-1 mt-[var(--space-4)] px-[var(--space-4)] pb-[var(--space-6)] overflow-y-auto scrollbar-hide">
         {showAllUsers ? (
-          <ChatRooms />
+          <ChatRooms
+            onUserOrGroupSelected={(chatRoomId: string) => {
+              onSelectChatRoom(chatRoomId);
+              setShowAllUsers(false);
+            }}
+          />
         ) : (
           <ul className="space-y-3">
             {chatRoom
