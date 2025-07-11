@@ -6,9 +6,9 @@ import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import ChatBubble from "./ChatBubble";
 import { motion, AnimatePresence } from "framer-motion";
-import { addHours, format, isToday, isYesterday } from "date-fns";
-import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { format, isToday, isYesterday } from "date-fns";
+import { FaArrowLeft } from "react-icons/fa";
+// import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import * as signalR from "@microsoft/signalr";
 
@@ -28,7 +28,7 @@ export default function ChatWindow({
     editMessage,
     fetchMessagesByChatRoomId,
     setCurrentChatRoomId,
-    setmessagesByChatRoomId,
+    // setmessagesByChatRoomId,
   } = useMessage();
 
   const { user } = useAuth();
@@ -38,8 +38,10 @@ export default function ChatWindow({
   );
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   let lastRenderedDate = "";
+  const [showOtherProfile, setShowOtherProfile] = useState(false);
+  // const [showSelfProfile, setShowSelfProfile] = useState(false);
 
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
@@ -83,9 +85,9 @@ export default function ChatWindow({
     return format(date, "MMMM dd, yyyy");
   };
 
-  const handleViewProfile = () => {
-    navigate("/profile");
-  };
+  // const handleViewProfile = () => {
+  //   navigate("/profile");
+  // };
 
   const Spinner = () => (
     <svg
@@ -161,41 +163,107 @@ export default function ChatWindow({
   const hasMessages =
     Array.isArray(currentMessages) && currentMessages.length > 0;
 
+  const otherUser = !chatRoom.isGroup
+    ? chatRoom.users.find((u) => u.id !== user?.id)
+    : null;
+
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative">
-        {isMobileView && (
-          <button
-            onClick={() => {
-              setShowChatWindow(false);
-              setmessagesByChatRoomId({});
-            }}
-            className="cursor-pointer block md:hidden"
-            aria-label="Back to chat list"
-            title="Back to chat list"
-          >
-            <FaArrowLeft />
-          </button>
-        )}
+      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex flex-col relative">
+        <div className="flex items-center w-full">
+          {isMobileView && (
+            <button
+              onClick={() => {
+                setShowChatWindow(false);
+                // setmessagesByChatRoomId({});
+              }}
+              className="cursor-pointer block md:hidden"
+              aria-label="Back to chat list"
+              title="Back to chat list"
+            >
+              <FaArrowLeft />
+            </button>
+          )}
 
-        <h2 className="font-extrabold uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
-          {renderConnectionStatus()}
-        </h2>
+          {/* DM: Only show other user's avatar and name ONCE */}
+          {!chatRoom.isGroup && otherUser && (
+            <div
+              className="flex items-center gap-3 mx-auto cursor-pointer"
+              onClick={() => setShowOtherProfile(true)}
+              title="View profile"
+            >
+              <img
+                src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+                  otherUser.username || "user"
+                )}`}
+                alt="user avatar"
+                className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+              />
+              <span className="text-[var(--color-text)] text-base font-bold">
+                {otherUser.username}
+              </span>
+            </div>
+          )}
 
-        <div
-          className="flex items-center space-x-2 cursor-pointer"
-          onClick={handleViewProfile}
-        >
-          <FaUserCircle />
-          <span className="text-[var(--color-text)] text-sm font-medium hidden sm:block">
-            {user?.username}
-          </span>
+          {/* Group: Keep group name and avatars row*/}
+          {chatRoom.isGroup && (
+            <h2 className="font-extrabold uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
+              {renderConnectionStatus()}
+            </h2>
+          )}
         </div>
+
+        {/* Group avatars row */}
+        {chatRoom.isGroup && (
+          <div className="flex items-center justify-center mt-2 mb-1">
+            {chatRoom.users.slice(0, 4).map((u, idx) => (
+              <img
+                key={u.id}
+                src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+                  u.username
+                )}`}
+                alt={u.username}
+                className="w-5 h-5 rounded-full border-2 border-white -ml-2 first:ml-0 bg-gray-200 object-cover shadow"
+                style={{ zIndex: 10 - idx }}
+              />
+            ))}
+            {chatRoom.users.length > 4 && (
+              <span className="ml-2 text-xs bg-[var(--color-border)] text-[var(--color-text)] px-2 py-1 rounded-full border border-[var(--color-border)]">
+                +{chatRoom.users.length - 4} others
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Other User Profile Modal */}
+      {showOtherProfile && otherUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-[var(--color-background)] border border-[var(--color-border)] rounded-2xl p-8 w-full max-w-xs flex flex-col items-center relative">
+            <button
+              className="absolute top-2 right-2 text-xl"
+              onClick={() => setShowOtherProfile(false)}
+            >
+              &times;
+            </button>
+            <img
+              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+                otherUser.username
+              )}`}
+              alt="user avatar"
+              className="w-24 h-24 rounded-full shadow mb-4 bg-gray-200 object-cover"
+            />
+            <h2 className="text-lg font-bold mb-2">{otherUser.username}</h2>
+            {otherUser.email && (
+              <p className="text-gray-500 mb-2">{otherUser.email}</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide">
         {hasMessages ? (
           currentMessages!
             .sort(
@@ -204,7 +272,7 @@ export default function ChatWindow({
                 new Date(b.timestamp ?? "").getTime()
             )
             .map((msg, idx) => {
-              const messageTime = addHours(new Date(msg.timestamp ?? ""), 1);
+              const messageTime = new Date(msg.timestamp ?? "");
               const messageDate = formatDateHeader(messageTime.toISOString());
               const showDateHeader = messageDate !== lastRenderedDate;
               lastRenderedDate = messageDate;
@@ -231,7 +299,7 @@ export default function ChatWindow({
                       />
                       <button
                         onClick={() => handleEdit(msg.messageId, editText)}
-                        className="text-blue-500 font-semibold hover:underline"
+                        className="text-blue-500 font-semibold hover:underline dark:text-blue-200"
                       >
                         Save
                       </button>
@@ -253,25 +321,20 @@ export default function ChatWindow({
                           );
                         }
                       }}
-                      className={`flex flex-col ${
+                      className={`flex flex-col group ${
                         isSender ? "items-end" : "items-start"
-                      } ${isSender ? "cursor-pointer" : "cursor-default"}`}
+                      } ${isSender ? "cursor-pointer" : "cursor-default"} mb-1`}
                     >
-                      <small>
-                        {chatRoom.isGroup && msg.sender?.id !== user?.id && (
-                          <i>{msg.sender?.username}</i>
-                        )}
-                      </small>
+                      {chatRoom.isGroup && msg.sender?.id !== user?.id && (
+                        <span className="text-[10px] text-gray-400 mb-0.5 ml-1">
+                          {msg.sender?.username}
+                        </span>
+                      )}
                       <ChatBubble
                         senderId={msg.sender?.id ?? ""}
                         message={msg.content}
+                        timestamp={msg.timestamp}
                       />
-                      <p className="text-xs text-[var(--color-text)] mt-1">
-                        {messageTime.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
                     </div>
                   )}
 
@@ -289,7 +352,7 @@ export default function ChatWindow({
                             setEditingMessageId(msg.messageId);
                             setEditText(msg.content);
                           }}
-                          className="text-sm px-3 py-1 rounded hover:bg-blue-100 hover:text-blue-600 transition"
+                          className="text-sm px-3 py-1 rounded hover:bg-blue-100 hover:text-blue-600 transition dark:hover:text-blue-200"
                         >
                           ✏️ Edit
                         </button>

@@ -25,8 +25,10 @@ export type AuthContextType = {
   login: (Email: string, password: string) => Promise<ApiResponse<LoginResponse>>;
   register: (Username:string,Email: string, Password: string) => Promise<ApiResponse<string>>; 
   getUserById: (userId: string) => Promise<void>;
+  // updateUsername:(userid:string,newUsername:string)=> Prmoise<ApiResponse<void>>
+  // updatePassword:(userid:string,currentPassword:string,newPassword:string)=> Prmoise<ApiResponse<void>>
   logout: () => void;
-  isLoading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<ApplicationUser | null>>;  isLoading: boolean;
   isAuthChecked:boolean;
 };
 
@@ -67,7 +69,8 @@ export type ChatRoomContextType = {
   isLoading: boolean;
   error: string | null;
   showCreateModal:boolean;
-  setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;  openChatRoom:(chatRoomId:string) => Promise<void>;
+  setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>; 
+  openChatRoom:(chatRoomId:string) => Promise<void>;
   createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<ChatRoomType | null>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;
   getPrivateChatRoom:(currentUserId: string,friendUserId:string) => Promise<ChatRoomType>
@@ -76,6 +79,8 @@ export type ChatRoomContextType = {
   deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
   updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
   fetchChatRoomsWhereUserIsNotIn:(userId:string) => Promise<void>
+  currentChatRoomId: string | null;
+  setCurrentChatRoomId: (id: string | null) => void;
 };
 
 export type LoginResponse = {
@@ -101,4 +106,10 @@ export interface ProvidersProps {
   children: ReactNode;
 }
 
-
+interface ProfileContextType {
+  updateUsername: (newUsername: string) => Promise<boolean>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  loading: boolean;
+  error: string;
+  setError: React.Dispatch<React.SetStateAction<string>>
+}

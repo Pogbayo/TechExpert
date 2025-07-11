@@ -7,6 +7,7 @@ import type {
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import type { ApplicationUser } from "../../Types/EntityTypes/ApplicationUser";
 import axiosInstance from "../../IAxios/axiosInstance";
+import { useSignal } from "../SignalRContextFolder/useSignalR";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -18,6 +19,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [fetchedUser, setfetchedUser] = useState<ApplicationUser | null>(null);
+  const { connection } = useSignal();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -30,6 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsAuthChecked(true);
   }, []);
+
+  useEffect(() => {
+    if (!connection || !user) return;
+    const handler = (userId: string, newUsername: string) => {
+      if (userId === user.id) {
+        setUser((prev) => prev ? { ...prev, username: newUsername } : prev);
+      }
+    };
+    connection.on("UsernameChanged", handler);
+    return () => {
+      connection.off("UsernameChanged", handler);
+    };
+  }, [connection, user]);
 
   async function login(
     Email: string,
@@ -131,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         logout,
         register,

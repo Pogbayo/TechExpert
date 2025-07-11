@@ -4,12 +4,18 @@ import { useUser } from "../context/UserContextFolder/useUser";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { AnimatePresence, motion } from "framer-motion";
+import { useMessage } from "../context/MessageContextFolder/useMessage";
 
-export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSelected?: (chatRoomId: string) => void }) {
+export default function ChatRooms({
+  onUserOrGroupSelected,
+}: {
+  onUserOrGroupSelected?: (chatRoomId: string) => void;
+}) {
   const navigate = useNavigate();
 
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
     useUser();
+  const { setCurrentChatRoomId } = useMessage();
   const { user } = useAuth();
   const {
     getPrivateChatRoom,
@@ -18,13 +24,14 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
     showCreateModal,
     setShowCreateModal,
   } = useChatRoom();
+  const { clearMessages } = useMessage();
   const { openChatRoom } = useChatRoom();
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [isAddingUser, setIsAddingUser] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,11 +47,15 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
   }, [fetchNonMutualFriends, fetchUsers, user?.id]);
 
   const handleOpenChatRoom = async (userId: string, friendId: string) => {
-    // clearMessages();
+    setIsAddingUser(true);
+    clearMessages();
     const chatRoom = await getPrivateChatRoom(userId, friendId);
-    openChatRoom(chatRoom.chatRoomId);
+    if (chatRoom) {
+      openChatRoom(chatRoom.chatRoomId);
+      setCurrentChatRoomId(chatRoom.chatRoomId);
+    }
     if (onUserOrGroupSelected) onUserOrGroupSelected(chatRoom.chatRoomId);
-    // navigate(`/chat/${chatRoom.chatRoomId}`);
+    setIsAddingUser(false);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -56,6 +67,7 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
   };
 
   const handleCreateGroup = async () => {
+    setIsLoading(true);
     if (!groupName.trim()) {
       setError("Group name is required");
       return;
@@ -74,7 +86,7 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
     const memberIds = [user.id, ...selectedUsers];
 
     const newGroup = await createChatRoom(groupName.trim(), true, memberIds);
-
+    setIsLoading(false);
     if (newGroup) {
       if (onUserOrGroupSelected) onUserOrGroupSelected(newGroup.chatRoomId);
       navigate(`/chat/${newGroup.chatRoomId}`);
@@ -120,6 +132,11 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
 
       {/* Scrollable List */}
       <div className="flex-1 mt-4 px-4 pb-6 overflow-y-auto scrollbar-hide">
+        {isAddingUser && (
+          <div className="text-center text-[var(--color-secondary)] mt-4">
+            Preparing chat...
+          </div>
+        )}
         {isLoading ? (
           <div className="text-center text-[var(--color-secondary)] mt-20">
             {activeTab === "users" ? "Loading users..." : "Loading groups..."}
@@ -161,10 +178,10 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
                     {group.name?.charAt(0).toUpperCase() || "G"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-[var(--color-text)] text-base truncate">
+                    <span className="font-semibold text-[var(--color-text)] text-base truncate dark:text-gray-100">
                       {group.name || "Unnamed Group"}
                     </span>
-                    <p className="text-[var(--color-chat-text)] text-sm italic truncate">
+                    <p className="text-[var(--color-chat-text)] text-sm italic truncate dark:text-gray-300">
                       {group.lastMessageContent
                         ? `${group.lastMessageContent.slice(0, 40)}...`
                         : "No messages yet"}
@@ -268,7 +285,7 @@ export default function ChatRooms({ onUserOrGroupSelected }: { onUserOrGroupSele
                   onClick={handleCreateGroup}
                   className="px-5 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Create
+                  {isLoading ? "Preparing group chat..." : "Create Group chat"}
                 </button>
               </div>
             </motion.div>

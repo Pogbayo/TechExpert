@@ -68,7 +68,6 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
         setConnectionStatus("connecting");
         await stopConnection();
         const connection = createConnection(userId);
-        console.log("🔌 Created new connection:", connection);
 
         // Event listeners
         connection.onclose((error) => {
@@ -98,11 +97,11 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
           await connection.start();
           console.log("✅ SignalR started! State:", connection.state);
 
-          // Sync local state after connection
+          // Immediately set to connected
           if (isMounted) {
-            setStateBasedOnConnection(connection.state);
+            setConnected(true);
+            setConnectionStatus("connected");
           }
-          console.log("This is line 105", connection.state);
           // Join chat rooms
           try {
             const token = localStorage.getItem("token");

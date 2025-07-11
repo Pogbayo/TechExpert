@@ -7,12 +7,12 @@
   --color-primary: #3b82f6;          /* Bright Blue */
   --color-secondary: #60a5fa;        /* Light Blue */
   --color-background: #ffffff;       /* White background */
-  --color-chat-bg: #e0f2fe;          /* Light chat bubble */
+  --color-chat-bg: #f3f4f6;          /* Light gray chat bubble */
   --color-chat-text: #000000;        /* Dark text inside chat */
   --color-text: #111827;             /* General text color */
   --color-border: #e2e8f0;           /* Light border */
-  --color-input-bg: #ffffff; /* change from light blue to white */
-  --color-input-text: #111827;      /* Input text color (whiteish) */
+  --color-input-bg: #ffffff;         /* change from light blue to white */
+  --color-input-text: #111827;       /* Input text color (whiteish) */
  
   --color-userDivBackground:#454545;
     /* Font Sizes */
@@ -58,15 +58,7 @@
 }
 
 
-/* In your main CSS or global styles file */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
+/* Remove custom scrollbar hiding */
 
 @keyframes spike {
   0%, 100% {
@@ -80,4 +72,13 @@
 .animate-spike {
   animation: spike 1s infinite ease-in-out;
   display: inline-block;
+}
+
+/* Hide scrollbars but allow scrolling (cross-browser) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
 }

@@ -3,15 +3,15 @@ import type { MessageInputProps } from "../Types/ContextTypes/contextType";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
 import { IoSendSharp } from "react-icons/io5";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
-import { useParams } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import toast from "react-hot-toast";
+import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 
 export default function MessageInput({ isGroup }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { sendMessage } = useMessage();
   const { user } = useAuth();
-  const { chatRoomId } = useParams<{ chatRoomId: string }>();
+  const { currentChatRoomId } = useChatRoom();
   const { connection } = useSignal();
 
   const handleSend = async () => {
@@ -20,10 +20,20 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
       return;
     }
 
+    if (!currentChatRoomId) {
+      toast.error("No chat room selected.");
+      return;
+    }
+
     if (message.trim() === "") return;
     console.group(isGroup);
 
-    await sendMessage(chatRoomId ?? "", user?.id ?? "", message);
+    console.log("Sending message", {
+      chatRoomId: currentChatRoomId,
+      senderId: user?.id,
+      content: message,
+    });
+    await sendMessage(currentChatRoomId, user?.id ?? "", message);
     setMessage("");
   };
 
@@ -35,6 +45,13 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type your message..."
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            setMessage("");
+            e.preventDefault();
+            handleSend();
+          }
+        }}
       />
       <button
         className="bg-blue-500 text-white p-2 rounded-r cursor-pointer"

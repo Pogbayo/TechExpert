@@ -1,4 +1,3 @@
-
 //component props type
 export type ButtonProps = {
   label: string;
@@ -9,6 +8,7 @@ export type ButtonProps = {
 export type ChatBubbleProps = {
   message: string;
   senderId: string;
+  timestamp?: string; 
 };
 
 export type ChatInputProps = {
@@ -36,7 +36,6 @@ export type AvatarProps = {
 export type ChatMessageListProps = {
   messages: ChatMessage[];
 };
-
 
 export type ChatRoomListProps = {
   showDpOnly?: boolean;

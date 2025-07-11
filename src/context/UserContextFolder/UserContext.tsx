@@ -1,9 +1,10 @@
-import { createContext, useCallback, useState, type ReactNode } from "react";
+import { createContext, useCallback, useState, type ReactNode, useEffect } from "react";
 import axios from "axios";
 import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import type { UserContextType } from "../../Types/ContextTypes/contextType";
 import type { ApplicationUser } from "../../Types/EntityTypes/ApplicationUser";
 import axiosInstance from "../../IAxios/axiosInstance";
+import { useSignal } from "../SignalRContextFolder/useSignalR";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const UserContext = createContext<UserContextType | undefined>(
@@ -18,6 +19,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<ApplicationUser[]>([]);
   const [error, setError] = useState<string>("");
+  const { connection } = useSignal();
 
   const fetchUsers = useCallback(async (numberOfUsers: number) => {
     setIsLoading(true);
@@ -113,6 +115,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   }, []);
+
+  // Listen for username changes for all users
+  useEffect(() => {
+    if (!connection) return;
+    const handler = (userId: string, newUsername: string) => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, username: newUsername } : u))
+      );
+    };
+    connection.on("UsernameChanged", handler);
+    return () => {
+      connection.off("UsernameChanged", handler);
+    };
+  }, [connection]);
 
   return (
     <UserContext.Provider

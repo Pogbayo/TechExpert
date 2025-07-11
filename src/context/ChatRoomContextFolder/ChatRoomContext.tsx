@@ -12,6 +12,8 @@ import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 import axiosInstance from "../../IAxios/axiosInstance";
 import toast from "react-hot-toast";
+import { useAuth } from "../AuthContextFolder/useAuth";
+import * as signalR from "@microsoft/signalr";
 // import { useMessage } from "../MessageContextFolder/useMessage";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -38,9 +40,13 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   >(null);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(
+    null
+  );
 
   // const navigate = useNavigate();
   const { connection } = useSignal();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,47 +117,79 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     [chatRooms]
   );
 
-  useEffect(() => {
-    if (!connection) return;
+  // --- SignalR Event Handlers ---
+  const handleNewChatRoom = useCallback(
+    (chatRoom: ChatRoomType) => {
+      // Check if the current user is a member of this chat room
+      if (chatRoom.users && chatRoom.users.some((u) => u.id === user?.id)) {
+        setChatRooms((prev) => {
+          const exists = prev.some((r) => r.chatRoomId === chatRoom.chatRoomId);
+          if (exists) {
+            // Update existing room if it already exists
+            return prev.map((r) =>
+              r.chatRoomId === chatRoom.chatRoomId ? { ...r, ...chatRoom } : r
+            );
+          }
+          // Add new
+          // Show toast only for newly added rooms
+          // toast.success(
+          //   `You've been added to ${chatRoom.name || "a new chat room"}!`
+          // );
+          return [...prev, chatRoom];
+        });
+        // Join the SignalR group for this chat room
+        if (connection) {
+          connection.invoke("JoinRoom", chatRoom.chatRoomId).catch((err) => {
+            console.error("Failed to join new chat room group:", err);
+          });
+        }
+      }
+    },
+    [user, connection]
+  );
 
-    const handleNewChatRoom = (chatRoom: ChatRoomType) => {
-      setChatRooms((prev) => {
-        const exists = prev.some((r) => r.chatRoomId === chatRoom.chatRoomId);
-        if (exists) return prev;
-        return [...prev, chatRoom];
-      });
-
-      connection.invoke("JoinRoom", chatRoom.chatRoomId).catch((err) => {
-        console.error("Failed to join new chat room group:", err);
-      });
-    };
-
-    const handleChatRoomUpdated = (chatRoomId: string, newName: string) => {
+  const handleChatRoomUpdated = useCallback(
+    (chatRoomId: string, newName: string) => {
       setChatRooms((prev) =>
         prev.map((room) =>
-          room.chatRoomId === chatRoomId ? { ...room, Name: newName } : room
+          room.chatRoomId === chatRoomId ? { ...room, name: newName } : room
         )
       );
       setLastAction("chatroom-updated");
-    };
+      toast.success(`Chat room renamed to: ${newName}`);
+    },
+    []
+  );
 
-    const handleChatRoomDeleted = (chatRoomId: string) => {
-      setChatRooms((prev) =>
-        prev.filter((room) => room.chatRoomId !== chatRoomId)
-      );
-      setLastAction("chatroom-deleted");
-    };
+  const handleChatRoomDeleted = useCallback((chatRoomId: string) => {
+    setChatRooms((prev) => {
+      const exists = prev.some((room) => room.chatRoomId === chatRoomId);
+      const updated = prev.filter((room) => room.chatRoomId !== chatRoomId);
+      // Only show toast if the room was actually removed
+      if (exists) {
+        toast.error("A chat room you were in has been deleted.");
+      }
+      return updated;
+    });
+    setLastAction("chatroom-deleted");
+  }, []);
 
+  useEffect(() => {
+    if (!connection) return;
     connection.on("ChatRoomCreated", handleNewChatRoom);
     connection.on("ChatRoomUpdated", handleChatRoomUpdated);
     connection.on("ChatRoomDeleted", handleChatRoomDeleted);
-
     return () => {
       connection.off("ChatRoomCreated", handleNewChatRoom);
       connection.off("ChatRoomUpdated", handleChatRoomUpdated);
       connection.off("ChatRoomDeleted", handleChatRoomDeleted);
     };
-  }, [connection]);
+  }, [
+    connection,
+    handleNewChatRoom,
+    handleChatRoomUpdated,
+    handleChatRoomDeleted,
+  ]);
 
   const createChatRoom = useCallback(
     async (
@@ -168,10 +206,34 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         setLastAction("chatroom-created");
         if (response.data.success && response.data.data) {
           const newRoom = response.data.data;
-          setChatRooms((prev) => [...prev, newRoom]);
+
+          // Add the new room to the local state
+          setChatRooms((prev) => {
+            const exists = prev.some(
+              (r) => r.chatRoomId === newRoom.chatRoomId
+            );
+            if (exists) return prev;
+            return [...prev, newRoom];
+          });
+
+          // Join the SignalR group for this new chat room
+          if (connection?.state === signalR.HubConnectionState.Connected) {
+            try {
+              await connection.invoke("JoinRoom", newRoom.chatRoomId);
+              console.log(
+                `Joined SignalR group for chat room: ${newRoom.chatRoomId}`
+              );
+            } catch (err) {
+              console.error(
+                "Failed to join SignalR group for new chat room:",
+                err
+              );
+            }
+          }
+
           setShowCreateModal(false);
           openChatRoom(newRoom.chatRoomId);
-          toast.success(`${newRoom.name} created successfully.`);
+          toast.success(`${newRoom.name || "Chat room"} created successfully.`);
           return newRoom;
         }
       } catch (err: unknown) {
@@ -187,7 +249,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       }
       return null;
     },
-    [openChatRoom]
+    [openChatRoom, connection]
   );
 
   const fetchChatRoomsWhereUserIsNotIn = useCallback(async (userId: string) => {
@@ -319,6 +381,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       try {
+        // Try to get existing private chat room
         const response = await axiosInstance.get<ApiResponse<ChatRoomType>>(
           `/chatroom/get-private-chat`,
           {
@@ -328,20 +391,53 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
             },
           }
         );
+
         if (response.data.success && response.data.data) {
-          return response.data.data;
+          const existingRoom = response.data.data;
+
+          // Add to local state if not already present
+          setChatRooms((prev) => {
+            const exists = prev.some(
+              (r) => r.chatRoomId === existingRoom.chatRoomId
+            );
+            if (exists) return prev;
+            return [...prev, existingRoom];
+          });
+
+          return existingRoom;
         } else {
-          throw new Error("Failed to get private chat room.");
+          const newRoom = await createChatRoom("", false, [
+            currentUserId,
+            friendUserId,
+          ]);
+
+          if (newRoom) {
+            return newRoom;
+          } else {
+            throw new Error("Failed to create private chat room.");
+          }
         }
       } catch (error) {
-        setError("Failed to get private chat room.");
+        setError("Failed to get or create private chat room.");
         throw error;
       } finally {
         setIsLoading(false);
       }
     },
-    []
+    [createChatRoom]
   );
+
+  // Always fetch chat rooms from server on login/page load to avoid stale localStorage
+  useEffect(() => {
+    if (user?.id) {
+      getChatRoomsRelatedToUser(user.id);
+    }
+    // Optionally, clear chatRooms if user logs out
+    if (!user?.id) {
+      setChatRooms([]);
+      localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
+    }
+  }, [user?.id, getChatRoomsRelatedToUser]);
 
   return (
     <ChatRoomContext.Provider
@@ -364,6 +460,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         showCreateModal,
         setShowCreateModal,
         updateChatRoomName,
+        currentChatRoomId,
+        setCurrentChatRoomId,
       }}
     >
       {children}

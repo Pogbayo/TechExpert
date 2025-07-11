@@ -10,6 +10,9 @@ import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import type { Message } from "../Types/EntityTypes/Message";
 import * as signalR from "@microsoft/signalr";
+import { useOnlineUsers } from "../context/OnlineUsersContext";
+import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
@@ -18,19 +21,6 @@ export interface ChatRoomListProps {
   isDarkMode: boolean;
   isMobileView: boolean;
 }
-
-const colors = [
-  "bg-gray-500",
-  "bg-gray-600",
-  "bg-gray-700",
-  "bg-blue-400",
-  "bg-indigo-400",
-  "bg-emerald-400",
-  "bg-teal-400",
-  "bg-cyan-400",
-  "bg-rose-400",
-  "bg-amber-400",
-];
 
 function getLastMessage(messages: Message[] | null | undefined) {
   if (!messages || messages.length === 0) return null;
@@ -51,7 +41,7 @@ export default function ChatRoomList({
     chatRooms,
     getChatRoomsRelatedToUser,
     getChatRoomByName,
-    openChatRoom,
+    setCurrentChatRoomId,
   } = useChatRoom();
 
   const { user, logout } = useAuth();
@@ -64,6 +54,7 @@ export default function ChatRoomList({
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
   useEffect(() => {
     const handleResize: () => void = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -82,7 +73,7 @@ export default function ChatRoomList({
     });
   }, [chatRooms, messagesByChatRoomId, fetchMessagesByChatRoomId]);
 
-  const getRandomColor = (index: number) => colors[index % colors.length];
+  // const getRandomColor = (index: number) => colors[index % colors.length];
 
   const getChatRoomName = (room: ChatRoomType) => {
     if (room.isGroup) {
@@ -97,16 +88,33 @@ export default function ChatRoomList({
 
   const handleSearch = async (name: string) => {
     if (!name.trim()) {
-      setError("Please enter a chat room name to search.");
+      setError("Please enter a chat room name or username to search.");
       return;
     }
     setError("");
+
+    //  Searching for a user on the frontend first and if not found I revert to the backend to search for a group by the provided name
+    const dmRoom = chatRooms.find(
+      (room) =>
+        !room.isGroup &&
+        room.users.some(
+          (u) =>
+            u.id !== user?.id &&
+            u.username.toLowerCase() === name.trim().toLowerCase()
+        )
+    );
+    if (dmRoom) {
+      setChatRoom(dmRoom);
+      return;
+    }
+
+    // 2. Otherwise, search for a group by name (backend)
     const result: ChatRoomType | null = await getChatRoomByName(name.trim());
     if (result !== null && result !== undefined) {
       setChatRoom(result);
     } else {
       setChatRoom(null);
-      setError("No chat room found with that name.");
+      setError("No chat room or user found with that name.");
     }
   };
 
@@ -133,14 +141,14 @@ export default function ChatRoomList({
 
   const renderChatRoom = (room: ChatRoomType, index: number) => {
     const chatRoomName = getChatRoomName(room);
-    const dpLetter = chatRoomName.charAt(0).toUpperCase();
-    const bgColor = getRandomColor(index);
+    // const dpLetter = chatRoomName.charAt(0).toUpperCase();
+    // const bgColor = getRandomColor(index);
     const messages = messagesByChatRoomId[room.chatRoomId] || [];
     const lastMessage = getLastMessage(messages);
 
     const handleClick = () => {
       if (!room?.chatRoomId) return;
-      openChatRoom(room.chatRoomId);
+      setCurrentChatRoomId(room.chatRoomId);
       onSelectChatRoom?.(room.chatRoomId);
     };
 
@@ -148,7 +156,7 @@ export default function ChatRoomList({
 
     return (
       <div
-        key={room.chatRoomId}
+        key={index}
         onClick={handleClick}
         role="button"
         tabIndex={0}
@@ -157,13 +165,49 @@ export default function ChatRoomList({
         }}
         className="flex mb-3 items-start gap-4 p-[var(--space-3)] rounded-[var(--radius-lg)] bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
       >
-        <div
-          className={`${
-            compactView ? "w-10 h-10 text-lg" : "w-14 h-14 text-xl"
-          } flex items-center justify-center rounded-full text-white font-bold flex-shrink-0 ${bgColor}`}
-        >
-          {dpLetter}
-        </div>
+        {room.isGroup ? (
+          <div
+            className={`${
+              compactView ? "w-10 h-10" : "w-14 h-14"
+            } rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden`}
+          >
+            <svg
+              viewBox="0 0 40 40"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-3/4 h-3/4"
+            >
+              <circle cx="12" cy="16" r="6" fill="#60A5FA" />
+              <circle cx="28" cy="16" r="6" fill="#F472B6" />
+              <circle cx="20" cy="24" r="8" fill="#FBBF24" />
+            </svg>
+          </div>
+        ) : (
+          <div className="relative">
+            <img
+              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+                chatRoomName
+              )}`}
+              alt="user avatar"
+              className={`${
+                compactView ? "w-10 h-10" : "w-14 h-14"
+              } rounded-full border-2 border-white bg-gray-200 object-cover`}
+            />
+            {(() => {
+              // Find the other user in the DM
+              const otherUser = room.users.find((u) => u.id !== user?.id);
+              // console.log(
+              //   "otherUser.id",
+              //   otherUser?.id,
+              //   "onlineUsers",
+              //   onlineUsers
+              // );
+              return otherUser && onlineUsers.includes(otherUser.id) ? (
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+              ) : null;
+            })()}
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
@@ -182,7 +226,7 @@ export default function ChatRoomList({
             </span>
             <span
               className="text-xs whitespace-nowrap"
-              style={{ color: "var(--color-secondary)" }}
+              style={{ color: "var(--color-text)" }}
             >
               {lastMessage
                 ? new Date(lastMessage.timestamp ?? 0).toLocaleTimeString([], {
@@ -213,7 +257,7 @@ export default function ChatRoomList({
                       ? "You"
                       : lastMessage.sender?.username}
                   </span>
-                  <span style={{ color: "var(--color-chat-text)" }}>
+                  <span style={{ color: "var(--color-input-text)" }}>
                     : {lastMessage.content}
                   </span>
                 </>
@@ -232,6 +276,9 @@ export default function ChatRoomList({
       </div>
     );
   };
+
+  const onlineUsers = useOnlineUsers();
+  const navigate = useNavigate();
 
   return (
     <div
@@ -293,6 +340,14 @@ export default function ChatRoomList({
           >
             {plus ? <FiPlus /> : <IoMdArrowRoundBack />}
           </button>
+
+          <button
+            onClick={() => navigate("/profile")}
+            className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-blue-500"
+            title="View my profile"
+          >
+            <FaUserCircle />
+          </button>
         </div>
       </div>
 
@@ -342,11 +397,22 @@ export default function ChatRoomList({
             {chatRoom
               ? renderChatRoom(chatRoom, 0)
               : [...chatRooms]
-                  .sort(
-                    (a, b) =>
-                      new Date(b.lastMessageTimestamp ?? 0).getTime() -
-                      new Date(a.lastMessageTimestamp ?? 0).getTime()
-                  )
+                  .sort((a, b) => {
+                    // Get last message timestamp for each room
+                    const aMessages = messagesByChatRoomId[a.chatRoomId] || [];
+                    const bMessages = messagesByChatRoomId[b.chatRoomId] || [];
+                    const aLast = getLastMessage(aMessages);
+                    const bLast = getLastMessage(bMessages);
+
+                    const aTime = aLast
+                      ? new Date(aLast.timestamp ?? 0).getTime()
+                      : new Date(a.lastMessageTimestamp ?? 0).getTime();
+                    const bTime = bLast
+                      ? new Date(bLast.timestamp ?? 0).getTime()
+                      : new Date(b.lastMessageTimestamp ?? 0).getTime();
+
+                    return bTime - aTime;
+                  })
                   .map((room, index) => renderChatRoom(room, index))}
           </ul>
         )}

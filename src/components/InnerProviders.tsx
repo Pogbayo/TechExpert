@@ -5,6 +5,9 @@ import { ChatUIProvider } from "../context/ChatUIContextFolder/ChatUIContext";
 import { MessageProvider } from "../context/MessageContextFolder/MessageContext";
 import { SignalProvider } from "../context/SignalRContextFolder/SignalRContext";
 import { UserProvider } from "../context/UserContextFolder/UserContext";
+import { OnlineUsersProvider } from "../context/OnlineUsersContext";
+import { ProfileProvider } from "../context/ProfileContextFolder/ProfileContext";
+
 export default function InnerProviders({
   children,
 }: {
@@ -20,7 +23,11 @@ export default function InnerProviders({
         <MessageProvider>
           <ChatRoomProvider>
             <ChatRoomUserProvider>
-              <ChatUIProvider>{children}</ChatUIProvider>
+              <OnlineUsersProvider>
+                <ProfileProvider>
+                  <ChatUIProvider>{children}</ChatUIProvider>
+                </ProfileProvider>
+              </OnlineUsersProvider>
             </ChatRoomUserProvider>
           </ChatRoomProvider>
         </MessageProvider>

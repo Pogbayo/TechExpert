@@ -105,7 +105,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     try {
       const response = await axiosInstance.post<ApiResponse<Message>>(
         `/message/send-message`,
-        { chatRoomId, senderId, content },
+        { ChatRoomId: chatRoomId, SenderId: senderId, Content: content },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
@@ -148,24 +148,19 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
-        if (newMessage.chatRoomId === currentChatRoomIdRef.current) {
-          console.log("Use effect got here first");
-          setmessagesByChatRoomId((prev) => {
-            const roomId = newMessage.chatRoomId;
-            const existingMessages = prev[roomId] || [];
-            const alreadyExists = existingMessages.some(
-              (msg) => msg.messageId === newMessage.messageId
-            );
-
-            if (alreadyExists) return prev;
-
-            const updatedMessages = [...existingMessages, newMessage];
-            return {
-              ...prev,
-              [roomId]: updatedMessages,
-            };
-          });
-        }
+        setmessagesByChatRoomId((prev) => {
+          const roomId = newMessage.chatRoomId;
+          const existingMessages = prev[roomId] || [];
+          const alreadyExists = existingMessages.some(
+            (msg) => msg.messageId === newMessage.messageId
+          );
+          if (alreadyExists) return prev;
+          const updatedMessages = [...existingMessages, newMessage];
+          return {
+            ...prev,
+            [roomId]: updatedMessages,
+          };
+        });
       });
     }
 

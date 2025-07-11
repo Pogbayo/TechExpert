@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -71,17 +71,29 @@ export default function AuthPage() {
     }
   };
 
+  // Ensure theme is applied on mount (for direct refresh)
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    if (storedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
+    <div className="flex justify-center items-center min-h-screen bg-[var(--color-background)] px-4 text-[var(--color-text)] transition-colors duration-300">
+      <div className="bg-[var(--color-background)] p-8 rounded-2xl shadow-2xl w-full max-w-md border border-[var(--color-border)]">
         <div className="flex justify-between mb-6">
           <button
             onClick={() => {
               setIsLogin(true);
               resetForm();
             }}
-            className={`w-1/2 py-3 rounded-b-sm font-semibold transition ${
-              isLogin ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+            className={`w-1/2 py-3 rounded-b-sm font-semibold transition text-[var(--color-text)] ${
+              isLogin
+                ? "bg-[var(--color-primary)] text-white"
+                : "bg-[var(--color-border)]"
             }`}
             disabled={loading}
           >
@@ -92,8 +104,10 @@ export default function AuthPage() {
               setIsLogin(false);
               resetForm();
             }}
-            className={`w-1/2 py-3 rounded-b-sm font-semibold transition ${
-              !isLogin ? "bg-black text-white" : "bg-gray-200 text-gray-700"
+            className={`w-1/2 py-3 rounded-b-sm font-semibold transition text-[var(--color-text)] ${
+              !isLogin
+                ? "bg-[var(--color-primary)] text-white"
+                : "bg-[var(--color-border)]"
             }`}
             disabled={loading}
           >
@@ -103,33 +117,37 @@ export default function AuthPage() {
 
         {isLogin ? (
           <form onSubmit={handleLogin} className="space-y-5 animate-fade-in">
-            <h2 className="text-2xl font-medium mb-4 text-center text-gray-800">
+            <h2 className="text-2xl font-medium mb-4 text-center text-[var(--color-text)]">
               Login
             </h2>
             <div>
-              <label className="block mb-1 text-gray-600">Email:</label>
+              <label className="block mb-1 text-[var(--color-text)]">
+                Email:
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div>
-              <label className="block mb-1 text-gray-600">Password:</label>
+              <label className="block mb-1 text-[var(--color-text)]">
+                Password:
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
               disabled={loading}
             >
               {loading ? (
@@ -138,14 +156,14 @@ export default function AuthPage() {
                 "Login"
               )}
             </button>
-            <p className="text-center text-gray-600 mt-4">
+            <p className="text-center text-[var(--color-text)] mt-4">
               Don't have an account?{" "}
               <span
                 onClick={() => {
                   setIsLogin(false);
                   resetForm();
                 }}
-                className="text-black font-semibold cursor-pointer hover:underline"
+                className="text-[var(--color-primary)] font-semibold cursor-pointer hover:underline"
               >
                 Register here
               </span>
@@ -153,41 +171,47 @@ export default function AuthPage() {
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-5 animate-fade-in">
-            <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
+            <h2 className="text-3xl font-bold mb-4 text-center text-[var(--color-text)]">
               Register
             </h2>
             <div>
-              <label className="block mb-1 text-gray-600">Username:</label>
+              <label className="block mb-1 text-[var(--color-text)]">
+                Username:
+              </label>
               <input
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />{" "}
             </div>
 
             <div>
-              <label className="block mb-1 text-gray-600">Email:</label>
+              <label className="block mb-1 text-[var(--color-text)]">
+                Email:
+              </label>
               <input
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div>
-              <label className="block mb-1 text-gray-600">Password:</label>
+              <label className="block mb-1 text-[var(--color-text)]">
+                Password:
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div>
-              <label className="block mb-1 text-gray-600">
+              <label className="block mb-1 text-[var(--color-text)]">
                 Confirm Password:
               </label>
               <input
@@ -195,13 +219,13 @@ export default function AuthPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
               disabled={loading}
             >
               {loading ? (
@@ -210,14 +234,14 @@ export default function AuthPage() {
                 "Register"
               )}
             </button>
-            <p className="text-center text-gray-600 mt-4">
+            <p className="text-center text-[var(--color-text)] mt-4">
               Already have an account?{" "}
               <span
                 onClick={() => {
                   setIsLogin(true);
                   resetForm();
                 }}
-                className="text-black font-semibold cursor-pointer hover:underline"
+                className="text-[var(--color-primary)] font-semibold cursor-pointer hover:underline"
               >
                 Login here
               </span>

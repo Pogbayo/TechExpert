@@ -4,13 +4,15 @@ import ChatRoomList from "../components/ChatRoomList";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useWindowSize } from "../components/useWindowSize";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
+import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function ChatLayout() {
   const {
     getChatRoomById,
     chatRoom,
     openChatRoom,
-    chatRooms, // added here to get the list of rooms
+    chatRooms, 
   } = useChatRoom();
   const windowSize = useWindowSize();
   const isMobileView = windowSize <= 769.9333;
@@ -20,6 +22,7 @@ export default function ChatLayout() {
   );
   const [showChatWindow, setShowChatWindow] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   // Auto-select first chat room when chatRooms load and none selected
   useEffect(() => {
@@ -76,27 +79,35 @@ export default function ChatLayout() {
 
   return (
     <div className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]">
-      {/* Header with dark mode toggle ONLY on desktop */}
+      {/* Header with dark mode toggle and profile icon (desktop only) */}
       {!isMobileView && (
         <header className="flex items-center justify-between px-[var(--space-2)] py-[var(--space-2)] border-b border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text)]">
           <h1 style={{ fontSize: "var(--font-size-sm)" }} className="font-bold">
             Spag Chat
           </h1>
-          <button
-            onClick={toggleDarkMode}
-            className="focus:outline-none text-xl text-[var(--color-text)] bg-[var(--color-input-bg)] p-2 rounded-full"
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? <MdLightMode /> : <MdDarkMode />}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleDarkMode}
+              className="focus:outline-none text-xl text-[var(--color-text)] bg-[var(--color-input-bg)] p-2 rounded-full"
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <MdLightMode /> : <MdDarkMode />}
+            </button>
+            <button
+              onClick={() => navigate("/profile")}
+              className="focus:outline-none text-xl text-[var(--color-text)] bg-[var(--color-input-bg)] p-2 rounded-full"
+              aria-label="View my profile"
+              title="View my profile"
+            >
+              <FaUserCircle />
+            </button>
+          </div>
         </header>
       )}
 
       {/* Main Layout */}
       <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
-        {/* Show Chat List:
-            - Always on desktop
-            - On mobile only if chat window is hidden */}
+        
         {(!isMobileView || !showChatWindow) && (
           <div className="w-full md:w-1/4 border-r border-[var(--color-border)] bg-[var(--color-background)] flex flex-col h-full">
             {!isMobileView && (
@@ -107,7 +118,7 @@ export default function ChatLayout() {
                   fontSize: "var(--font-size-base)",
                 }}
               >
-                Chat
+                
               </p>
             )}
             <ChatRoomList
@@ -120,9 +131,6 @@ export default function ChatLayout() {
           </div>
         )}
 
-        {/* Show ChatWindow:
-            - Always on desktop if room is selected
-            - On mobile if showChatWindow is true */}
         {(!isMobileView && selectedChatRoomId) ||
         (isMobileView && showChatWindow) ? (
           <div className="flex-1 p-0 flex flex-col bg-[var(--color-background)] min-h-[50vh]">
