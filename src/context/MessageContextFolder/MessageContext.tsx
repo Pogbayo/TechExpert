@@ -114,17 +114,11 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success && response.data.data) {
-        console.log("Send Message function got here first");
-
-        // const newMessage = response.data.data;
-        // setmessagesByChatRoomId((prev) => {
-        //   const roomId = newMessage.chatRoomId;
-        //   const existingMessages = prev[roomId] || [];
-        //   return {
-        //     ...prev,
-        //     [roomId]: [...existingMessages, newMessage],
-        //   };
-        // });
+        console.log("📤 Message sent successfully:", {
+          messageId: response.data.data.messageId,
+          chatRoomId: response.data.data.chatRoomId,
+          content: response.data.data.content
+        });
 
         setIsMessageSent(true);
       } else {
@@ -148,14 +142,29 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (connection) {
+      console.log("📡 Setting up ReceiveMessage listener for connection:", connection.state);
+      
       connection.on("ReceiveMessage", (newMessage: Message) => {
+        console.log("📨 Received message:", {
+          messageId: newMessage.messageId,
+          chatRoomId: newMessage.chatRoomId,
+          sender: newMessage.sender?.username,
+          content: newMessage.content
+        });
+        
         setmessagesByChatRoomId((prev) => {
           const roomId = newMessage.chatRoomId;
           const existingMessages = prev[roomId] || [];
           const alreadyExists = existingMessages.some(
             (msg) => msg.messageId === newMessage.messageId
           );
-          if (alreadyExists) return prev;
+          
+          if (alreadyExists) {
+            console.log("⚠️ Message already exists, skipping:", newMessage.messageId);
+            return prev;
+          }
+          
+          console.log("✅ Adding new message to chat room:", roomId);
           const updatedMessages = [...existingMessages, newMessage];
           return {
             ...prev,
@@ -167,6 +176,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
     return () => {
       if (connection) {
+        console.log("🧹 Cleaning up ReceiveMessage listener");
         connection.off("ReceiveMessage");
       }
     };

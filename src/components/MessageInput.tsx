@@ -15,6 +15,9 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
   const { connection } = useSignal();
 
   const handleSend = async () => {
+    console.log("🔍 MessageInput - currentChatRoomId:", currentChatRoomId);
+    console.log("🔍 MessageInput - connection state:", connection?.state);
+    
     if (connection?.state !== "Connected") {
       toast.error("Error: Not connected to the chat server.");
       return;

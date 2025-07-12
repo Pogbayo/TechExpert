@@ -1,65 +1,65 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --font-primary: "Poppins", "serif";
-
-  /*colors - light mode*/
-  --color-primary: #3b82f6;          /* Bright Blue */
-  --color-secondary: #60a5fa;        /* Light Blue */
-  --color-background: #ffffff;       /* White background */
-  --color-chat-bg: #f3f4f6;          /* Light gray chat bubble */
-  --color-chat-text: #000000;        /* Dark text inside chat */
-  --color-text: #111827;             /* General text color */
-  --color-border: #e2e8f0;           /* Light border */
-  --color-input-bg: #ffffff;         /* change from light blue to white */
-  --color-input-text: #111827;       /* Input text color (whiteish) */
- 
-  --color-userDivBackground:#454545;
-    /* Font Sizes */
-  --font-size-xs: 0.75rem;   /* 12px */
-  --font-size-sm: 0.875rem;  /* 14px */
-  --font-size-base: 1rem;    /* 16px */
-  --font-size-lg: 1.125rem;  /* 18px */
-  --font-size-xl: 1.25rem;   /* 20px */
-
-
-    /* Spacing */
-  --space-1: 0.25rem;  /* 4px */
-  --space-2: 0.5rem;   /* 8px */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px */
-  --space-5: 1.25rem;  /* 20px */
-  --space-6: 1.5rem;   /* 24px */
-  --space-8: 2rem;     /* 32px */
-  --space-10: 2.5rem;  /* 40px */
-
-  /* Border Radius */
-  --radius-sm: 0.375rem; /* 6px */
-  --radius-md: 0.5rem;   /* 8px */
-  --radius-lg: 0.75rem;  /* 12px */
-
-
- 
-
-}
-
-@layer base {
-  .dark {
-    --color-primary: #2563eb;          /* Darker blue */
-    --color-secondary: #1e40af;        /* Dark blue */
-    --color-background: #1f2937;       /* Darkish gray background */
-    --color-chat-bg: #1e293b;          /* Dark chat bubble */
-    --color-chat-text: #60a5fa;        /* Light blue chat text */
-    --color-text: #f9fafb;             /* General light text color */
-    --color-border: #334155;           /* Darker border */
-    --color-input-bg: #1e293b;         /* Input background */
-    --color-input-text: #e0e7ff;       /* Input text color (lighter) */
+/* Mobile viewport fixes */
+@supports (padding: max(0px)) {
+  .mobile-safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .mobile-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
 
+/* Ensure fixed elements stay in viewport on mobile */
+@media (max-width: 768px) {
+  .fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    /* Account for mobile browser UI */
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .fixed-input {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    /* Account for mobile browser UI */
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  /* Use custom viewport height for better mobile support */
+  .mobile-container {
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  /* Prevent body scroll when keyboard is open */
+  body {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
 
-/* Remove custom scrollbar hiding */
+/* Custom scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animation for loading spinners */
 @keyframes spike {
   0%, 100% {
     transform: scaleY(0.3);
@@ -70,15 +70,34 @@
 }
 
 .animate-spike {
-  animation: spike 1s infinite ease-in-out;
-  display: inline-block;
+  animation: spike 1.2s ease-in-out infinite;
 }
 
-/* Hide scrollbars but allow scrolling (cross-browser) */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+/* CSS Variables for theming */
+:root {
+  --color-background: #ffffff;
+  --color-chat-bg: #f8f9fa;
+  --color-text: #1a1a1a;
+  --color-chat-text: #333333;
+  --color-border: #e5e7eb;
+  --color-input-bg: #ffffff;
+  --color-input-text: #1a1a1a;
+  --color-primary: #3b82f6;
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-size-base: 1rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --radius-lg: 0.5rem;
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari, Opera */
+
+.dark {
+  --color-background: #1a1a1a;
+  --color-chat-bg: #2d2d2d;
+  --color-text: #ffffff;
+  --color-chat-text: #e5e7eb;
+  --color-border: #404040;
+  --color-input-bg: #2d2d2d;
+  --color-input-text: #ffffff;
+  --color-primary: #60a5fa;
 }

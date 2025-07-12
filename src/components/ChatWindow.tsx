@@ -11,6 +11,7 @@ import { FaArrowLeft } from "react-icons/fa";
 // import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import * as signalR from "@microsoft/signalr";
+import { useMobileViewport } from "../hooks/useMobileViewport";
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -48,6 +49,7 @@ ChatWindowPropsExtended) {
 
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
+  const { viewportHeight } = useMobileViewport();
 
   useEffect(() => {
     if (chatRoom) setCurrentChatRoomId(chatRoom.chatRoomId);
@@ -195,8 +197,10 @@ ChatWindowPropsExtended) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top Bar */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex flex-col relative">
+      {/* Top Bar - Fixed on mobile */}
+      <div className={`p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex flex-col relative ${
+        isMobileView ? 'fixed-header' : ''
+      }`}>
         <div className="flex items-center w-full">
           {isMobileView && (
             <button
@@ -299,8 +303,10 @@ ChatWindowPropsExtended) {
         </div>
       )}
 
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide">
+      {/* Messages List - Add top and bottom padding on mobile to account for fixed header and input */}
+      <div className={`flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide ${
+        isMobileView ? 'pt-20 pb-24' : ''
+      }`}>
         {hasMessages ? (
           currentMessages!
             .sort(
@@ -415,8 +421,10 @@ ChatWindowPropsExtended) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)]">
+      {/* Message Input - Fixed on mobile */}
+      <div className={`border-t border-[var(--color-border)] p-4 bg-[var(--color-background)] ${
+        isMobileView ? 'fixed-input' : ''
+      }`}>
         <MessageInput isGroup={chatRoom?.isGroup ?? false} />
       </div>
     </div>

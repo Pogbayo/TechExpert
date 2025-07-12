@@ -51,6 +51,7 @@ export default function ChatRooms({
     clearMessages();
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     if (chatRoom) {
+      console.log("🔗 ChatRooms - Opening private chat:", chatRoom.chatRoomId);
       openChatRoom(chatRoom.chatRoomId);
       setCurrentChatRoomId(chatRoom.chatRoomId);
     }

@@ -140,7 +140,8 @@ export default function ChatRoomList({
   );
 
   const hanldeLogOUt = () => {
-    setCurrentChatRoomId("");
+    console.log("🚪 Logging out - clearing chat room ID");
+    setCurrentChatRoomId(null);
     logout();
   };
   const renderChatRoom = (room: ChatRoomType, index: number) => {
@@ -152,6 +153,7 @@ export default function ChatRoomList({
 
     const handleClick = () => {
       if (!room?.chatRoomId) return;
+      console.log("🖱️ ChatRoomList - Clicking chat room:", room.chatRoomId);
       setCurrentChatRoomId(room.chatRoomId);
       onSelectChatRoom?.(room.chatRoomId);
     };

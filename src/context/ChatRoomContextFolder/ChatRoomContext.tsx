@@ -14,7 +14,7 @@ import axiosInstance from "../../IAxios/axiosInstance";
 import toast from "react-hot-toast";
 import { useAuth } from "../AuthContextFolder/useAuth";
 import * as signalR from "@microsoft/signalr";
-// import { useMessage } from "../MessageContextFolder/useMessage";
+import { useMessage } from "../MessageContextFolder/useMessage";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -47,6 +47,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   // const navigate = useNavigate();
   const { connection } = useSignal();
   const { user } = useAuth();
+  const { setCurrentChatRoomId: setMessageContextChatRoomId } = useMessage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +59,13 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     | "chatroom-updated"
     | null
   >(null);
+
+  // Wrapper function to sync both contexts
+  const setCurrentChatRoomIdWrapper = useCallback((id: string | null) => {
+    console.log("🔄 Syncing currentChatRoomId:", id);
+    setCurrentChatRoomId(id);
+    setMessageContextChatRoomId(id);
+  }, [setMessageContextChatRoomId]);
 
   // const { fetchMessagesByChatRoomId } = useMessage();
 
@@ -109,12 +117,17 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
 
   const openChatRoom = useCallback(
     async (chatRoomId: string): Promise<void> => {
+      console.log("🔍 Opening chat room:", chatRoomId);
       const room = chatRooms.find((room) => room.chatRoomId === chatRoomId);
       if (room) {
         setChatRoom(room);
+        setCurrentChatRoomIdWrapper(chatRoomId);
+        console.log("✅ Chat room opened:", chatRoomId);
+      } else {
+        console.log("❌ Chat room not found:", chatRoomId);
       }
     },
-    [chatRooms]
+    [chatRooms, setCurrentChatRoomIdWrapper]
   );
 
   // --- SignalR Event Handlers ---
@@ -461,7 +474,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         setShowCreateModal,
         updateChatRoomName,
         currentChatRoomId,
-        setCurrentChatRoomId,
+        setCurrentChatRoomId: setCurrentChatRoomIdWrapper,
       }}
     >
       {children}
