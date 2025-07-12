@@ -381,7 +381,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       try {
-        // Try to get existing private chat room
+        // Try to get existing private chat room , if not create a new one
         const response = await axiosInstance.get<ApiResponse<ChatRoomType>>(
           `/chatroom/get-private-chat`,
           {
@@ -427,7 +427,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     [createChatRoom]
   );
 
-  // Always fetch chat rooms from server on login/page load to avoid stale localStorage
+  // fetch chat rooms from server on login/page load to avoid stale localStorage
   useEffect(() => {
     if (user?.id) {
       getChatRoomsRelatedToUser(user.id);

@@ -16,7 +16,6 @@ function isTokenExpired(token: string): boolean {
     return true; 
   }
 }
-
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 

@@ -24,14 +24,14 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/chat/:chatRoomId"
           element={
             <PrivateRoute>
               <ChatLayout />
             </PrivateRoute>
           }
-        />
+        /> */}
         <Route
           path="/profile"
           element={

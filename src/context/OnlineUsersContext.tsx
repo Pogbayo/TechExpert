@@ -3,7 +3,9 @@ import { useSignal } from "./SignalRContextFolder/useSignalR";
 
 const OnlineUsersContext = createContext<string[]>([]);
 
-export const OnlineUsersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const OnlineUsersProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { connection } = useSignal();
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
@@ -12,7 +14,10 @@ export const OnlineUsersProvider: React.FC<{ children: React.ReactNode }> = ({ c
     connection.on("OnlineUsersChanged", (userIds: string[]) => {
       setOnlineUsers(userIds);
     });
-    connection.invoke("GetOnlineUsers").then(setOnlineUsers).catch(() => {});
+    connection
+      .invoke("GetOnlineUsers")
+      .then(setOnlineUsers)
+      .catch(() => {});
     return () => {
       connection.off("OnlineUsersChanged");
     };
@@ -25,4 +30,5 @@ export const OnlineUsersProvider: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
-export const useOnlineUsers = () => useContext(OnlineUsersContext); 
+// eslint-disable-next-line react-refresh/only-export-components
+export const useOnlineUsers = () => useContext(OnlineUsersContext);

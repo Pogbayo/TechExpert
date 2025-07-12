@@ -125,6 +125,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         //     [roomId]: [...existingMessages, newMessage],
         //   };
         // });
+
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");

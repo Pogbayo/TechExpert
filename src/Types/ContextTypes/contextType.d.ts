@@ -94,7 +94,7 @@ export type SignalContextType = {
 };
 
 export type ChatWindowProps = {
-  chatRoom: ChatRoomType;
+  chatRoom: ChatRoomType | null;
 };
 
 export type MessageInputProps = {

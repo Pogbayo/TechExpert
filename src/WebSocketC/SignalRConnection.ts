@@ -5,14 +5,24 @@ let connection: signalR.HubConnection | null = null;
 export const createConnection = (userId: string) => {
   if (connection) return connection;
 
-  const baseUrl =
-    import.meta.env.MODE === "development"
-      ? "http://localhost:5154"
-      : "https://spagchat.runasp.net";
+  const baseUrl = "https://spagchat.runasp.net";
+
+  const hubUrl = `${baseUrl}/chathub?userId=${userId}`;
+  console.log("🔗 Attempting to connect to SignalR hub:", hubUrl);
 
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${baseUrl}/chathub?userId=${userId}`, {
-      accessTokenFactory: () => localStorage.getItem("token") || "",
+    .withUrl(hubUrl, {
+      accessTokenFactory: () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("❌ No token found for SignalR connection");
+          throw new Error("No authentication token available");
+        }
+        console.log("🔑 Using token for SignalR: Token present");
+        // console.log("🔍 Token length:", token.length);
+        // console.log("🔍 Token starts with:", token.substring(0, 20) + "...");
+        return token;
+      },
 
       transport:
         signalR.HttpTransportType.WebSockets |

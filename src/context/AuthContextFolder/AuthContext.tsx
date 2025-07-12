@@ -38,7 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!connection || !user) return;
     const handler = (userId: string, newUsername: string) => {
       if (userId === user.id) {
-        setUser((prev) => prev ? { ...prev, username: newUsername } : prev);
+        setUser((prev) => {
+          if (!prev) return prev;
+          const updatedUser = { ...prev, username: newUsername };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          return updatedUser;
+        });
       }
     };
     connection.on("UsernameChanged", handler);
@@ -141,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("chatRoom"); // Clear chat room selection on logout
   }
 
   return (

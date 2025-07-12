@@ -36,6 +36,7 @@ export default function ProfilePage() {
     const success = await updateUsername(newUsername);
     if (success) {
       setShowEditUsername(false);
+      setNewUsername(newUsername); // Ensure state is updated
       toast.success("Username updated successfully");
     } else if (!success) {
       toast.error("Error updating username");
@@ -77,7 +78,7 @@ export default function ProfilePage() {
             className="w-32 h-32 rounded-full shadow-lg mb-4 bg-gray-200 object-cover"
           />
 
-          <p className="text-gray-500 italic mb-6">{user?.username}</p>
+          <p className="text-gray-500 italic mb-6">{user?.username || "No username set"}</p>
 
           {/* Action Buttons */}
           <div className="space-y-4 w-full">
