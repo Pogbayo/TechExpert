@@ -8,7 +8,7 @@ export const createConnection = (userId: string) => {
   const baseUrl = "https://spagchat.runasp.net";
 
   const hubUrl = `${baseUrl}/chathub?userId=${userId}`;
-  console.log("🔗 Attempting to connect to SignalR hub:", hubUrl);
+  // console.log("🔗 Attempting to connect to SignalR hub:", hubUrl);
 
   connection = new signalR.HubConnectionBuilder()
     .withUrl(hubUrl, {

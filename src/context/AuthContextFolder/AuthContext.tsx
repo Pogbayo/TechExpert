@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Authorization"
         ] = `Bearer ${token}`;
 
-        console.log(token, loggedInUser);
+        // console.log(token, loggedInUser);
 
         setUser(loggedInUser);
       }
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     setUser(null);
     localStorage.removeItem("token");
-    localStorage.removeItem("chatRoom"); // Clear chat room selection on logout
+    localStorage.removeItem("chatRoom");
   }
 
   return (

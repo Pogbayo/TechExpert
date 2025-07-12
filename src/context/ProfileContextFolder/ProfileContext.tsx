@@ -21,7 +21,7 @@ export const ProfileProvider = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { connection } = useSignal();
-  console.log("This is the username",user?.email)
+  // console.log("This is the username",user?.email)
   const updateUsername = useCallback(
     async (newUsername: string) => {
       if (!user) return false;

@@ -23,8 +23,8 @@ export default function ChatWindow({
   chatRoom,
   isMobileView,
   setShowChatWindow,
-  selectedChatRoomId,
-}: ChatWindowPropsExtended) {
+}: // selectedChatRoomId,
+ChatWindowPropsExtended) {
   const {
     messagesByChatRoomId,
     deleteMessage,
@@ -33,7 +33,7 @@ export default function ChatWindow({
     setCurrentChatRoomId,
     // setmessagesByChatRoomId,
   } = useMessage();
-  console.log(typeof selectedChatRoomId)
+  // console.log(typeof selectedChatRoomId)
   const { user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
@@ -49,32 +49,42 @@ export default function ChatWindow({
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
 
-if (!chatRoom) {
-  return (
-    <div className="flex flex-1 items-center justify-center h-full w-full text-center bg-[var(--color-background)]">
-      <div className="p-12 rounded-2xl shadow-2xl bg-gray-100 dark:bg-[var(--color-chat-bg)] border border-[var(--color-border)] flex flex-col items-center max-w-xl w-full">
-        <img src="https://api.iconify.design/mdi:chat-outline.svg?color=white" alt="Spag Chat Logo" className="w-28 h-28 mb-6 mx-auto drop-shadow-lg" />
-        <h2 className="font-extrabold text-3xl mb-3 text-blue-600 dark:text-blue-300">Spag Chat for Windows</h2>
-        <p className="text-lg opacity-80 mb-2 font-medium">Fast, simple, and secure messaging for everyone.</p>
-        <p className="text-base opacity-60">Select a chat room to start your conversation.</p>
-      </div>
-    </div>
-  );
-}
+  useEffect(() => {
+    if (chatRoom) setCurrentChatRoomId(chatRoom.chatRoomId);
+  }, [chatRoom, setCurrentChatRoomId]);
 
   useEffect(() => {
-    setCurrentChatRoomId(chatRoom.chatRoomId);
-  }, [chatRoom.chatRoomId, setCurrentChatRoomId]);
-
-  useEffect(() => {
-    fetchMessagesByChatRoomId(chatRoom.chatRoomId);
-  }, [chatRoom.chatRoomId, fetchMessagesByChatRoomId]);
+    if (chatRoom) fetchMessagesByChatRoomId(chatRoom.chatRoomId);
+  }, [chatRoom, fetchMessagesByChatRoomId]);
 
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messagesByChatRoomId]);
+
+  if (!chatRoom) {
+    return (
+      <div className="flex flex-1 items-center justify-center h-full w-full text-center bg-[var(--color-background)]">
+        <div className="p-12 rounded-2xl shadow-2xl bg-gray-100 dark:bg-[var(--color-chat-bg)] border border-[var(--color-border)] flex flex-col items-center max-w-xl w-full">
+          <img
+            src="https://api.iconify.design/mdi:chat-outline.svg?color=white"
+            alt="Spag Chat Logo"
+            className="w-28 h-28 mb-6 mx-auto drop-shadow-lg"
+          />
+          <h2 className="font-extrabold text-3xl mb-3 text-blue-600 dark:text-blue-300">
+            Spag Chat for Windows
+          </h2>
+          <p className="text-lg opacity-80 mb-2 font-medium">
+            Fast, simple, and secure messaging for everyone.
+          </p>
+          <p className="text-base opacity-60">
+            Select a chat room to start your conversation.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const extractChatRoomName = (chatRoom: ChatRoomType | null) => {
     if (chatRoom?.isGroup) return chatRoom.name;

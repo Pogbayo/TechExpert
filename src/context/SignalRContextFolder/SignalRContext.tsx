@@ -113,7 +113,7 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
             );
             for (const roomId of chatRoomIds) {
               await connection.invoke("JoinRoom", roomId);
-              console.log(`📢 Joined chat room: ${roomId}`);
+              // console.log(`📢 Joined chat room: ${roomId}`);
             }
           } catch (err) {
             console.error("⚠ Failed to join chat rooms:", err);
