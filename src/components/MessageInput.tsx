@@ -55,6 +55,7 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
             handleSend();
           }
         }}
+
       />
       <button
         className="bg-blue-500 text-white p-2 rounded-r cursor-pointer"
