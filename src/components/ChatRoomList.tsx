@@ -139,6 +139,10 @@ export default function ChatRoomList({
     </div>
   );
 
+  const hanldeLogOUt = () => {
+    setCurrentChatRoomId("");
+    logout();
+  };
   const renderChatRoom = (room: ChatRoomType, index: number) => {
     const chatRoomName = getChatRoomName(room);
     // const dpLetter = chatRoomName.charAt(0).toUpperCase();
@@ -323,7 +327,7 @@ export default function ChatRoomList({
           )}
 
           <button
-            onClick={logout}
+            onClick={hanldeLogOUt}
             className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-red-500"
             title="Logout"
           >

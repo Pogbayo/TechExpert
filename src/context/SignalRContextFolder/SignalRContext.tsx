@@ -58,36 +58,38 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
 
   useEffect(() => {
     let isMounted = true;
+    let connectionAttempts = 0;
+    const maxAttempts = 3;
+
     const startSignalR = async () => {
-      if (isStarting) {
-        console.log("⏳ SignalR already starting, skipping...");
+      if (isStarting || connectionAttempts >= maxAttempts) {
         return;
       }
+
       setIsStarting(true);
+      connectionAttempts++;
+
       try {
         setConnectionStatus("connecting");
         await stopConnection();
         const connection = createConnection(userId);
 
         // Event listeners
-        connection.onclose((error) => {
-          console.warn("❌ Connection closed", error);
-          if (isMounted) {
+        connection.onclose(() => {
+          if (isMounted && connectionAttempts < maxAttempts) {
             setConnected(false);
             setConnectionStatus("disconnected");
           }
         });
 
-        connection.onreconnecting((error) => {
-          console.warn("🔄 Reconnecting...", error);
+        connection.onreconnecting(() => {
           if (isMounted) {
             setConnected(false);
             setConnectionStatus("reconnecting");
           }
         });
 
-        connection.onreconnected((connectionId) => {
-          console.log("✅ Reconnected with ID:", connectionId);
+        connection.onreconnected(() => {
           if (isMounted) {
             setStateBasedOnConnection(connection.state);
           }
@@ -95,14 +97,13 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
 
         if (connection.state === signalR.HubConnectionState.Disconnected) {
           await connection.start();
-          console.log("✅ SignalR started! State:", connection.state);
 
-          // Immediately set to connected
           if (isMounted) {
             setConnected(true);
             setConnectionStatus("connected");
           }
-          // Join chat rooms
+
+          // Join chat rooms silently
           try {
             const token = localStorage.getItem("token");
             const { data: chatRoomIds } = await axiosInstance.get<string[]>(
@@ -113,10 +114,10 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
             );
             for (const roomId of chatRoomIds) {
               await connection.invoke("JoinRoom", roomId);
-              // console.log(`📢 Joined chat room: ${roomId}`);
             }
           } catch (err) {
-            console.error("⚠ Failed to join chat rooms:", err);
+            // Silent fail for chat room joining
+            console.log(err);
           }
         } else {
           if (isMounted) {
@@ -124,8 +125,8 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
           }
         }
       } catch (err) {
-        console.error("🚫 Failed to start SignalR:", err);
         if (isMounted) {
+          console.log(err);
           setConnected(false);
           setConnectionStatus("disconnected");
         }
@@ -133,7 +134,11 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
         setIsStarting(false);
       }
     };
-    startSignalR();
+
+    if (userId) {
+      startSignalR();
+    }
+
     return () => {
       isMounted = false;
       stopConnection();

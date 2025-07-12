@@ -11,8 +11,15 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, user, isAuthChecked } = useAuth();
   const [userName, setUserName] = useState("");
+
+  // Redirect to chat if user is already authenticated
+  useEffect(() => {
+    if (isAuthChecked && user) {
+      navigate("/chat");
+    }
+  }, [user, isAuthChecked, navigate]);
   const resetForm = () => {
     setUserName("");
     setEmail("");

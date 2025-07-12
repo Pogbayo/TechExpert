@@ -8,19 +8,14 @@ export const createConnection = (userId: string) => {
   const baseUrl = "https://spagchat.runasp.net";
 
   const hubUrl = `${baseUrl}/chathub?userId=${userId}`;
-  // console.log("🔗 Attempting to connect to SignalR hub:", hubUrl);
 
   connection = new signalR.HubConnectionBuilder()
     .withUrl(hubUrl, {
       accessTokenFactory: () => {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.error("❌ No token found for SignalR connection");
           throw new Error("No authentication token available");
         }
-        console.log("🔑 Using token for SignalR: Token present");
-        // console.log("🔍 Token length:", token.length);
-        // console.log("🔍 Token starts with:", token.substring(0, 20) + "...");
         return token;
       },
 
@@ -48,9 +43,9 @@ export const stopConnection = async () => {
   ) {
     try {
       await connection.stop();
-      console.log("SignalR connection stopped successfully.");
-    } catch (err) {
-      console.error("Error stopping connection:", err);
+    } catch (err:unknown) {
+      // Silent fail
+      console.log(err)
     }
   }
   connection = null;

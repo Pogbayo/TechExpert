@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import { AxiosError } from "axios";
+import { jwtDecode } from "jwt-decode";
 import type {
   AuthContextType,
   LoginResponse,
@@ -21,17 +22,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [fetchedUser, setfetchedUser] = useState<ApplicationUser | null>(null);
   const { connection } = useSignal();
 
-  useEffect(() => {
+  // Function to check if token is valid
+  const isTokenValid = (token: string): boolean => {
+    try {
+      const decoded: { exp: number } = jwtDecode(token);
+      const isValid = decoded.exp * 1000 > Date.now();
+      console.log("🔍 Token validation:", {
+        exp: decoded.exp,
+        currentTime: Date.now(),
+        isValid,
+      });
+      return isValid;
+    } catch (error) {
+      console.log("❌ Error decoding token:", error);
+      return false;
+    }
+  };
+
+  // Function to validate stored token and user
+  const validateStoredAuth = async () => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      axiosInstance.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${storedToken}`;
+    console.log("🔍 Validating stored auth:", {
+      hasUser: !!storedUser,
+      hasToken: !!storedToken,
+      tokenValid: storedToken ? isTokenValid(storedToken) : false,
+    });
+
+    if (storedUser && storedToken && isTokenValid(storedToken)) {
+      try {
+        // Set the token in axios headers
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${storedToken}`;
+
+        const userData = JSON.parse(storedUser);
+        console.log("✅ Token valid, setting user:", userData.username);
+        setUser(userData);
+      } catch (error) {
+        console.log("❌ Error parsing user data:", error);
+        // Token is invalid, clear everything
+        logout();
+      }
+    } else if (storedToken && !isTokenValid(storedToken)) {
+      console.log("❌ Token expired, clearing auth");
+      // Token exists but is expired, clear it
+      logout();
+    } else {
+      console.log("❌ No valid auth found");
     }
+
     setIsAuthChecked(true);
+  };
+
+  useEffect(() => {
+    validateStoredAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -144,9 +191,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
+    console.log("🚪 Logout called - clearing all data");
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     localStorage.removeItem("chatRoom");
+    localStorage.removeItem("chatRooms");
+    localStorage.removeItem("messagesCacheByRoom");
+    localStorage.removeItem("chatRoomUsers");
+
+    // Clear axios authorization header
+    delete axiosInstance.defaults.headers.common["Authorization"];
   }
 
   return (

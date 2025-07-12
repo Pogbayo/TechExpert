@@ -1,5 +1,4 @@
 import { AuthProvider } from "../context/AuthContextFolder/AuthContext";
-import InnerProviders from "./InnerProviders";
 
 export default function AppProviders({
   children,
@@ -8,7 +7,7 @@ export default function AppProviders({
 }) {
   return (
     <AuthProvider>
-      <InnerProviders>{children}</InnerProviders>
+      {children}
     </AuthProvider>
   );
 }
