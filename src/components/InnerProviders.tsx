@@ -19,20 +19,19 @@ export default function InnerProviders({
   return (
     <ThemeProvider>
       <SignalProvider userId={userId}>
-        <UserProvider>
-          <MessageProvider>
-            <ChatRoomProvider>
+        <MessageProvider>
+          <ChatRoomProvider>
+            <UserProvider>
               <ChatRoomUserProvider>
                 <OnlineUsersProvider>
                   <ProfileProvider>
                     {children}
-                    {/* <ChatUIProvider>{children}</ChatUIProvider> */}
                   </ProfileProvider>
                 </OnlineUsersProvider>
               </ChatRoomUserProvider>
-            </ChatRoomProvider>
-          </MessageProvider>
-        </UserProvider>
+            </UserProvider>
+          </ChatRoomProvider>
+        </MessageProvider>
       </SignalProvider>
     </ThemeProvider>
   );

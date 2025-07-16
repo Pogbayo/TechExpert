@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Authorization"
         ] = `Bearer ${token}`;
 
-        // console.log(token, loggedInUser);
+        console.log(token, loggedInUser);
 
         setUser(loggedInUser);
       }

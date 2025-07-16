@@ -103,12 +103,29 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setError("");
 
     try {
+      console.log("📤 Sending message:", {
+        chatRoomId,
+        senderId,
+        content: content.substring(0, 50) + (content.length > 50 ? "..." : ""),
+        token: localStorage.getItem("token") ? "Present" : "Missing",
+        baseURL: axiosInstance.defaults.baseURL
+      });
+
+      const requestPayload = { 
+        ChatRoomId: chatRoomId, 
+        SenderId: senderId, 
+        Content: content 
+      };
+
+      console.log("📤 Request payload:", requestPayload);
+
       const response = await axiosInstance.post<ApiResponse<Message>>(
         `/message/send-message`,
-        { ChatRoomId: chatRoomId, SenderId: senderId, Content: content },
+        requestPayload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+            "Content-Type": "application/json"
           },
         }
       );
@@ -117,22 +134,41 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         console.log("📤 Message sent successfully:", {
           messageId: response.data.data.messageId,
           chatRoomId: response.data.data.chatRoomId,
-          content: response.data.data.content
+          content: response.data.data.content.substring(0, 50) + "..."
         });
 
         setIsMessageSent(true);
       } else {
+        console.error("❌ Message send failed:", response.data);
         setError(response.data.message || "Failed to send message.");
         toast.error("Failed to send message");
       }
     } catch (err: unknown) {
+      console.error("❌ Message send error:", err);
       if (axios.isAxiosError(err)) {
-        setError(
-          err.response?.data?.message ||
-            "An error occurred while sending message."
-        );
+        console.error("❌ Axios error details:", {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          config: {
+            url: err.config?.url,
+            method: err.config?.method,
+            baseURL: err.config?.baseURL,
+            headers: err.config?.headers
+          }
+        });
+        
+        const errorMessage = err.response?.data?.message || 
+                           err.response?.data?.error || 
+                           err.message || 
+                           "An error occurred while sending message.";
+        
+        setError(errorMessage);
+        toast.error(errorMessage);
       } else {
-        setError("An unexpected error occurred.");
+        const errorMessage = "An unexpected error occurred.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } finally {
       setLoading(false);

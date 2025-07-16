@@ -78,6 +78,7 @@ export type ChatRoomContextType = {
   getChatRoomById: (chatRoomId: string) => Promise<void>;
   deleteChatRoomAsync: (chatRoomId: string) => Promise<void>;
   updateChatRoomName: (chatRoomId: string, newName: string) => Promise<void>;
+  refreshChatRoomsFromServer: (userId: string) => Promise<void>;
   fetchChatRoomsWhereUserIsNotIn:(userId:string) => Promise<void>
   currentChatRoomId: string | null;
   setCurrentChatRoomId: (id: string | null) => void;

@@ -17,7 +17,9 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
   const handleSend = async () => {
     console.log("🔍 MessageInput - currentChatRoomId:", currentChatRoomId);
     console.log("🔍 MessageInput - connection state:", connection?.state);
-    
+    // if (connectionStatus != "connected") {
+    //   toast("Connection lost...Try again")
+    // }
     if (connection?.state !== "Connected") {
       toast.error("Error: Not connected to the chat server.");
       return;
@@ -55,7 +57,6 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
             handleSend();
           }
         }}
-
       />
       <button
         className="bg-blue-500 text-white p-2 rounded-r cursor-pointer"

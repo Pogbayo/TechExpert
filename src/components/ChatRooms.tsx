@@ -52,6 +52,7 @@ export default function ChatRooms({
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     if (chatRoom) {
       console.log("🔗 ChatRooms - Opening private chat:", chatRoom.chatRoomId);
+      setCurrentChatRoomId(chatRoom.chatRoomId);
       openChatRoom(chatRoom.chatRoomId);
       setCurrentChatRoomId(chatRoom.chatRoomId);
     }
@@ -71,16 +72,19 @@ export default function ChatRooms({
     setIsLoading(true);
     if (!groupName.trim()) {
       setError("Group name is required");
+      setIsLoading(false);
       return;
     }
     if (selectedUsers.length === 0) {
       setError("Please select at least one user");
+      setIsLoading(false);
       return;
     }
 
     setError("");
     if (!user?.id) {
       setError("User ID is missing");
+      setIsLoading(false);
       return;
     }
 
@@ -89,6 +93,9 @@ export default function ChatRooms({
     const newGroup = await createChatRoom(groupName.trim(), true, memberIds);
     setIsLoading(false);
     if (newGroup) {
+      // Set the current chat room and open it
+      setCurrentChatRoomId(newGroup.chatRoomId);
+      openChatRoom(newGroup.chatRoomId);
       if (onUserOrGroupSelected) onUserOrGroupSelected(newGroup.chatRoomId);
       navigate(`/chat/${newGroup.chatRoomId}`);
     }

@@ -42,6 +42,7 @@ export default function ChatRoomList({
     getChatRoomsRelatedToUser,
     getChatRoomByName,
     setCurrentChatRoomId,
+    refreshChatRoomsFromServer,
   } = useChatRoom();
 
   const { user, logout } = useAuth();
@@ -64,6 +65,20 @@ export default function ChatRoomList({
   useEffect(() => {
     if (user?.id) getChatRoomsRelatedToUser(user.id);
   }, [user?.id, getChatRoomsRelatedToUser]);
+
+  // Refresh chat rooms when user returns to the tab (handles cases where SignalR missed the deletion)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user?.id) {
+        console.log("👁️ Page became visible, refreshing chat rooms");
+        refreshChatRoomsFromServer(user.id);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user?.id, refreshChatRoomsFromServer]);
 
   useEffect(() => {
     chatRooms.forEach((room) => {

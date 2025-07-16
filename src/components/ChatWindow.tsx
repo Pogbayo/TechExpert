@@ -50,6 +50,12 @@ ChatWindowPropsExtended) {
   const connectionStatus = connection?.state;
 
   useEffect(() => {
+    if (!chatRoom?.chatRoomId) {
+      setCurrentChatRoomId(chatRoom?.chatRoomId ?? "");
+    }
+  }, [chatRoom?.chatRoomId, setCurrentChatRoomId]);
+
+  useEffect(() => {
     if (chatRoom) setCurrentChatRoomId(chatRoom.chatRoomId);
   }, [chatRoom, setCurrentChatRoomId]);
 
