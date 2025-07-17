@@ -234,9 +234,9 @@ ChatWindowPropsExtended) {
   // );
 
   return (
-    <div {...handlers} className="flex flex-col h-full">
-      {/* Top Bar */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative">
+    <div {...handlers} className="flex flex-col h-full w-full">
+      {/* Top Bar (Header) */}
+      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative sticky top-0 z-20">
         {isMobileView && (
           <button
             onClick={() => {
@@ -338,8 +338,8 @@ ChatWindowPropsExtended) {
         </div>
       )}
 
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide">
+      {/* Messages List (Scrollable) */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide min-h-0">
         {hasMessages ? (
           currentMessages!
             .sort(
@@ -454,8 +454,8 @@ ChatWindowPropsExtended) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)]">
+      {/* Message Input (Fixed Bottom) */}
+      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)] sticky bottom-0 z-20">
         <MessageInput isGroup={chatRoom?.isGroup ?? false} />
       </div>
     </div>

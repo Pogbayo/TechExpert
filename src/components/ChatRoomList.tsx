@@ -246,7 +246,7 @@ export default function ChatRoomList({
     >
       {/* Top Bar */}
       <div
-        className="flex justify-between items-center px-[var(--space-4)] py-[var(--space-3)] border-b shadow-sm sticky top-0 z-10 bg-[var(--color-background)]"
+        className="flex justify-between items-center px-[var(--space-4)] py-[var(--space-3)] border-b shadow-sm sticky top-0 z-20 bg-[var(--color-background)]"
         style={{ borderColor: "var(--color-border)" }}
       >
         <h3
