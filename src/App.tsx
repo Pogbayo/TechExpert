@@ -18,7 +18,9 @@ export default function App() {
   }
 
   return (
-    <>
+    
+      <div className="app">
+
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* Public routes - no providers needed */}
@@ -49,6 +51,8 @@ export default function App() {
         {/* Fallback - redirect based on auth status */}
         <Route path="*" element={<Navigate to={user ? "/chat" : "/auth"} />} />
       </Routes>
-    </>
+      </div>
+
   );
+
 }
