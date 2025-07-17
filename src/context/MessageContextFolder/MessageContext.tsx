@@ -137,7 +137,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");
-        toast.error("Failed to send message");
+        toast.error("Failed to send message...");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
