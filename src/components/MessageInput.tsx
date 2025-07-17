@@ -5,21 +5,16 @@ import { IoSendSharp } from "react-icons/io5";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import toast from "react-hot-toast";
-import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
+// import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 
 export default function MessageInput({ isGroup }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const { sendMessage } = useMessage();
+  const { sendMessage, currentChatRoomId } = useMessage();
   const { user } = useAuth();
-  const { currentChatRoomId } = useChatRoom();
+  // const { currentChatRoomId } = useChatRoom(); // Remove this line
   const { connection } = useSignal();
 
   const handleSend = async () => {
-    console.log("🔍 MessageInput - currentChatRoomId:", currentChatRoomId);
-    console.log("🔍 MessageInput - connection state:", connection?.state);
-    // if (connectionStatus != "connected") {
-    //   toast("Connection lost...Try again")
-    // }
     if (connection?.state !== "Connected") {
       toast.error("Error: Not connected to the chat server.");
       return;
@@ -33,11 +28,6 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
     if (message.trim() === "") return;
     console.group(isGroup);
 
-    console.log("Sending message", {
-      chatRoomId: currentChatRoomId,
-      senderId: user?.id,
-      content: message,
-    });
     await sendMessage(currentChatRoomId, user?.id ?? "", message);
     setMessage("");
   };

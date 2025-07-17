@@ -27,14 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const decoded: { exp: number } = jwtDecode(token);
       const isValid = decoded.exp * 1000 > Date.now();
-      console.log("🔍 Token validation:", {
-        exp: decoded.exp,
-        currentTime: Date.now(),
-        isValid,
-      });
       return isValid;
     } catch (error) {
-      console.log("❌ Error decoding token:", error);
       return false;
     }
   };
@@ -44,12 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
 
-    console.log("🔍 Validating stored auth:", {
-      hasUser: !!storedUser,
-      hasToken: !!storedToken,
-      tokenValid: storedToken ? isTokenValid(storedToken) : false,
-    });
-
     if (storedUser && storedToken && isTokenValid(storedToken)) {
       try {
         // Set the token in axios headers
@@ -58,19 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ] = `Bearer ${storedToken}`;
 
         const userData = JSON.parse(storedUser);
-        console.log("✅ Token valid, setting user:", userData.username);
         setUser(userData);
       } catch (error) {
-        console.log("❌ Error parsing user data:", error);
-        // Token is invalid, clear everything
         logout();
       }
     } else if (storedToken && !isTokenValid(storedToken)) {
-      console.log("❌ Token expired, clearing auth");
-      // Token exists but is expired, clear it
       logout();
-    } else {
-      console.log("❌ No valid auth found");
     }
 
     setIsAuthChecked(true);
@@ -120,8 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${token}`;
-
-        console.log(token, loggedInUser);
 
         setUser(loggedInUser);
       }
@@ -186,12 +165,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
-      console.log(axiosError);
     }
   }
 
   function logout() {
-    console.log("🚪 Logout called - clearing all data");
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");

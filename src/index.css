@@ -83,3 +83,27 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Chrome, Safari, Opera */
 }
+
+body{
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.menu-popout {
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.menu-popout.menu-popout-in {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.menu-popout.menu-popout-out {
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+}

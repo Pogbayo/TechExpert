@@ -11,7 +11,7 @@ export default function ChatBubble({ message, senderId, timestamp }: ChatBubbleP
       `}
       style={{ wordBreak: "break-word", boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
-      <span className={`w-full mb-3 ${isSender ? "text-left" : "text-right"}`}>{message}</span>
+      <span className="w-full mb-3 text-left">{message}</span>
       {timestamp && (
         <span
           className={`absolute mt-1 ${isSender ? "right-2 bottom-1" : "left-2 bottom-1"} text-[8px] font-semibold ${isSender ? "text-[#b3e0ff]" : "text-gray-600"} dark:${isSender ? "text-blue-200" : "text-blue-300"}`}

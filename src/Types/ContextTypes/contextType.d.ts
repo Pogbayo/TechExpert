@@ -82,6 +82,8 @@ export type ChatRoomContextType = {
   fetchChatRoomsWhereUserIsNotIn:(userId:string) => Promise<void>
   currentChatRoomId: string | null;
   setCurrentChatRoomId: (id: string | null) => void;
+  pinChatRoom: (chatRoomId: string) => Promise<void>;
+  unpinChatRoom: (chatRoomId: string) => Promise<void>;
 };
 
 export type LoginResponse = {

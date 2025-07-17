@@ -103,21 +103,11 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     setError("");
 
     try {
-      console.log("📤 Sending message:", {
-        chatRoomId,
-        senderId,
-        content: content.substring(0, 50) + (content.length > 50 ? "..." : ""),
-        token: localStorage.getItem("token") ? "Present" : "Missing",
-        baseURL: axiosInstance.defaults.baseURL
-      });
-
-      const requestPayload = { 
-        ChatRoomId: chatRoomId, 
-        SenderId: senderId, 
-        Content: content 
+      const requestPayload = {
+        ChatRoomId: chatRoomId,
+        SenderId: senderId,
+        Content: content,
       };
-
-      console.log("📤 Request payload:", requestPayload);
 
       const response = await axiosInstance.post<ApiResponse<Message>>(
         `/message/send-message`,
@@ -125,44 +115,38 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
         }
       );
 
       if (response.data.success && response.data.data) {
-        console.log("📤 Message sent successfully:", {
-          messageId: response.data.data.messageId,
-          chatRoomId: response.data.data.chatRoomId,
-          content: response.data.data.content.substring(0, 50) + "..."
+        setmessagesByChatRoomId((prev) => {
+          const roomId = chatRoomId;
+          const existingMessages = prev[roomId] || [];
+          // Avoid duplicates if SignalR also adds it
+          const alreadyExists = existingMessages.some(
+            (msg) => msg.messageId === response.data.data!.messageId
+          );
+          if (alreadyExists) return prev;
+          return {
+            ...prev,
+            [roomId]: [...existingMessages, response.data.data!],
+          };
         });
-
         setIsMessageSent(true);
       } else {
-        console.error("❌ Message send failed:", response.data);
         setError(response.data.message || "Failed to send message.");
         toast.error("Failed to send message");
       }
     } catch (err: unknown) {
-      console.error("❌ Message send error:", err);
       if (axios.isAxiosError(err)) {
-        console.error("❌ Axios error details:", {
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          data: err.response?.data,
-          config: {
-            url: err.config?.url,
-            method: err.config?.method,
-            baseURL: err.config?.baseURL,
-            headers: err.config?.headers
-          }
-        });
-        
-        const errorMessage = err.response?.data?.message || 
-                           err.response?.data?.error || 
-                           err.message || 
-                           "An error occurred while sending message.";
-        
+        const errorMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "An error occurred while sending message.";
+
         setError(errorMessage);
         toast.error(errorMessage);
       } else {
@@ -178,29 +162,18 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (connection) {
-      console.log("📡 Setting up ReceiveMessage listener for connection:", connection.state);
-      
       connection.on("ReceiveMessage", (newMessage: Message) => {
-        console.log("📨 Received message:", {
-          messageId: newMessage.messageId,
-          chatRoomId: newMessage.chatRoomId,
-          sender: newMessage.sender?.username,
-          content: newMessage.content
-        });
-        
         setmessagesByChatRoomId((prev) => {
           const roomId = newMessage.chatRoomId;
           const existingMessages = prev[roomId] || [];
           const alreadyExists = existingMessages.some(
             (msg) => msg.messageId === newMessage.messageId
           );
-          
+
           if (alreadyExists) {
-            console.log("⚠️ Message already exists, skipping:", newMessage.messageId);
             return prev;
           }
-          
-          console.log("✅ Adding new message to chat room:", roomId);
+
           const updatedMessages = [...existingMessages, newMessage];
           return {
             ...prev,
@@ -212,7 +185,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
     return () => {
       if (connection) {
-        console.log("🧹 Cleaning up ReceiveMessage listener");
         connection.off("ReceiveMessage");
       }
     };

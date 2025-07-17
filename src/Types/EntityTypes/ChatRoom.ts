@@ -7,4 +7,5 @@ export type ChatRoomType = {
   lastMessageContent: string | null;
   lastMessageTimestamp: string | null;
   users: ApplicationUser[];
+  pinned?: boolean;
 };

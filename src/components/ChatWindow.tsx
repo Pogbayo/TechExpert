@@ -11,6 +11,8 @@ import { FaArrowLeft } from "react-icons/fa";
 // import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import * as signalR from "@microsoft/signalr";
+import { useSwipeable } from 'react-swipeable';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -45,6 +47,17 @@ ChatWindowPropsExtended) {
   let lastRenderedDate = "";
   const [showOtherProfile, setShowOtherProfile] = useState(false);
   // const [showSelfProfile, setShowSelfProfile] = useState(false);
+  const navigate = useNavigate();
+  const handlers = useSwipeable({
+    onSwipedRight: () => {
+      if (isMobileView) {
+        setShowChatWindow(false);
+      } else {
+        navigate(-1);
+      }
+    },
+    delta: 50,
+  });
 
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
@@ -199,85 +212,87 @@ ChatWindowPropsExtended) {
     ? chatRoom.users.find((u) => u.id !== user?.id)
     : null;
 
+  // Avatar fallback component
+  // const AvatarFallback = ({ username, size = 40 }: { username?: string, size?: number }) => (
+  //   <div
+  //     style={{
+  //       width: size,
+  //       height: size,
+  //       borderRadius: '50%',
+  //       background: '#e0e0e0',
+  //       display: 'flex',
+  //       alignItems: 'center',
+  //       justifyContent: 'center',
+  //       fontWeight: 'bold',
+  //       fontSize: size * 0.45,
+  //       color: '#888',
+  //     }}
+  //     aria-label={username || 'user'}
+  //   >
+  //     {username ? username.charAt(0).toUpperCase() : '?'}
+  //   </div>
+  // );
+
   return (
-    <div className="flex flex-col h-full">
+    <div {...handlers} className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex flex-col relative">
-        <div className="flex items-center w-full">
-          {isMobileView && (
-            <button
-              onClick={() => {
-                setShowChatWindow(false);
-                // setmessagesByChatRoomId({});
-              }}
-              className="cursor-pointer block md:hidden"
-              aria-label="Back to chat list"
-              title="Back to chat list"
-            >
-              <FaArrowLeft />
-            </button>
-          )}
-
-          {/* fallback Text if no chat has been selected
-          {!selectedChatRoomId && (
-            <div
-              style={{
-                color: "black",
-              }}
-            >
-              Select a chat to begin conversation
-            </div>
-          )} */}
-
-          {/* DM: Only show other user's avatar and name ONCE */}
-          {!chatRoom.isGroup && otherUser && (
-            <div
-              className="flex items-center gap-3 mx-auto cursor-pointer"
-              onClick={() => setShowOtherProfile(true)}
-              title="View profile"
-            >
-              <img
-                src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                  otherUser.username || "user"
-                )}`}
-                alt="user avatar"
-                className="w-10 h-10 rounded-full bg-gray-200 object-cover"
-              />
-              <span className="text-[var(--color-text)] text-base font-bold">
-                {otherUser.username}
-              </span>
-            </div>
-          )}
-
-          {/* Group: Keep group name and avatars row*/}
-          {chatRoom.isGroup && (
-            <h2 className="font-extrabold uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
-              {renderConnectionStatus()}
-            </h2>
-          )}
-        </div>
-
-        {/* Group avatars row */}
-        {chatRoom.isGroup && (
-          <div className="flex items-center justify-center mt-2 mb-1">
-            {chatRoom.users.slice(0, 4).map((u, idx) => (
-              <img
-                key={u.id}
-                src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                  u.username
-                )}`}
-                alt={u.username}
-                className="w-5 h-5 rounded-full border-2 border-white -ml-2 first:ml-0 bg-gray-200 object-cover shadow"
-                style={{ zIndex: 10 - idx }}
-              />
-            ))}
-            {chatRoom.users.length > 4 && (
-              <span className="ml-2 text-xs bg-[var(--color-border)] text-[var(--color-text)] px-2 py-1 rounded-full border border-[var(--color-border)]">
-                +{chatRoom.users.length - 4} others
-              </span>
-            )}
-          </div>
+      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative">
+        {isMobileView && (
+          <button
+            onClick={() => {
+              setShowChatWindow(false);
+            }}
+            className="cursor-pointer block md:hidden mr-2"
+            aria-label="Back to chat list"
+            title="Back to chat list"
+          >
+            <FaArrowLeft />
+          </button>
         )}
+        <h2 className="font-extrabold uppercase tracking-wide text-[clamp(1rem, 4vw, 1.5rem)] text-center flex-1 flex items-center justify-center">
+          {renderConnectionStatus()}
+        </h2>
+        {/* Avatar on the right */}
+        {chatRoom.isGroup ? (
+          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-white">
+            <svg
+              viewBox="0 0 40 40"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-full"
+              style={{ display: "block" }}
+            >
+              <circle cx="12" cy="16" r="6" fill="#60A5FA" />
+              <circle cx="28" cy="16" r="6" fill="#F472B6" />
+              <circle cx="20" cy="24" r="8" fill="#FBBF24" />
+            </svg>
+          </div>
+        ) : otherUser ? (
+          <div className="flex items-center justify-end ml-2 cursor-pointer" onClick={() => setShowOtherProfile(true)} title="View profile">
+            <img
+              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(otherUser.username || "user")}`}
+              alt="user avatar"
+              className="w-10 h-10 rounded-full bg-gray-200 object-cover border-2 border-white"
+              onError={e => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.style.width = '40px';
+                fallback.style.height = '40px';
+                fallback.style.borderRadius = '50%';
+                fallback.style.background = '#e0e0e0';
+                fallback.style.display = 'flex';
+                fallback.style.alignItems = 'center';
+                fallback.style.justifyContent = 'center';
+                fallback.style.fontWeight = 'bold';
+                fallback.style.fontSize = '18px';
+                fallback.style.color = '#888';
+                fallback.innerText = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+                target.parentNode?.insertBefore(fallback, target.nextSibling);
+              }}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Other User Profile Modal */}
@@ -296,6 +311,23 @@ ChatWindowPropsExtended) {
               )}`}
               alt="user avatar"
               className="w-24 h-24 rounded-full shadow mb-4 bg-gray-200 object-cover"
+              onError={e => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.style.width = '96px';
+                fallback.style.height = '96px';
+                fallback.style.borderRadius = '50%';
+                fallback.style.background = '#e0e0e0';
+                fallback.style.display = 'flex';
+                fallback.style.alignItems = 'center';
+                fallback.style.justifyContent = 'center';
+                fallback.style.fontWeight = 'bold';
+                fallback.style.fontSize = '40px';
+                fallback.style.color = '#888';
+                fallback.innerText = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+                target.parentNode?.insertBefore(fallback, target.nextSibling);
+              }}
             />
             <h2 className="text-lg font-bold mb-2">{otherUser.username}</h2>
             {otherUser.email && (

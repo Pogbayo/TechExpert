@@ -37,17 +37,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(stored);
         // Handle both old format (array) and new format (object with timestamp)
         if (Array.isArray(parsed)) {
-          console.log(
-            "📦 Loaded chat rooms from localStorage (old format):",
-            parsed.length
-          );
           return parsed;
         } else if (parsed.chatRooms && Array.isArray(parsed.chatRooms)) {
-          console.log("📦 Loaded chat rooms from localStorage (new format):", {
-            count: parsed.chatRooms.length,
-            timestamp: parsed.timestamp,
-            userId: parsed.userId,
-          });
           return parsed.chatRooms;
         }
       } catch (error) {
@@ -63,7 +54,9 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(
-    null
+    () => {
+      return localStorage.getItem("currentChatRoomId") || null;
+    }
   );
 
   // const navigate = useNavigate();
@@ -85,9 +78,13 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   // Wrapper function to sync both contexts
   const setCurrentChatRoomIdWrapper = useCallback(
     (id: string | null) => {
-      console.log("🔄 Syncing currentChatRoomId:", id);
       setCurrentChatRoomId(id);
       setMessageContextChatRoomId(id);
+      if (id) {
+        localStorage.setItem("currentChatRoomId", id);
+      } else {
+        localStorage.removeItem("currentChatRoomId");
+      }
     },
     [setMessageContextChatRoomId]
   );
@@ -112,12 +109,15 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       CHAT_ROOMS_STORAGE_KEY,
       JSON.stringify(dataWithTimestamp)
     );
-    console.log("💾 Saved chat rooms to localStorage:", {
-      count: chatRooms.length,
-      timestamp: dataWithTimestamp.timestamp,
-      userId: user?.id,
-    });
   }, [chatRooms, user?.id]);
+
+  useEffect(() => {
+    if (currentChatRoomId) {
+      localStorage.setItem("currentChatRoomId", currentChatRoomId);
+    } else {
+      localStorage.removeItem("currentChatRoomId");
+    }
+  }, [currentChatRoomId]);
 
   const getChatRoomsRelatedToUser = useCallback(async (userId: string) => {
     setIsLoading(true);
@@ -155,14 +155,12 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
 
   const openChatRoom = useCallback(
     async (chatRoomId: string): Promise<void> => {
-      console.log("🔍 Opening chat room:", chatRoomId);
       const room = chatRooms.find((room) => room.chatRoomId === chatRoomId);
       if (room) {
         setChatRoom(room);
         setCurrentChatRoomIdWrapper(chatRoomId);
-        console.log("✅ Chat room opened:", chatRoomId);
       } else {
-        console.log("❌ Chat room not found:", chatRoomId);
+        console.log("");
       }
     },
     [chatRooms, setCurrentChatRoomIdWrapper]
@@ -171,29 +169,20 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   // --- SignalR Event Handlers ---
   const handleNewChatRoom = useCallback(
     (chatRoom: ChatRoomType) => {
-      console.log("📨 SignalR: New chat room received:", {
-        chatRoomId: chatRoom.chatRoomId,
-        name: chatRoom.name,
-        isGroup: chatRoom.isGroup,
-        users: chatRoom.users?.map(u => u.id)
-      });
-      
       // Check if the current user is a member of this chat room
       if (chatRoom.users && chatRoom.users.some((u) => u.id === user?.id)) {
         setChatRooms((prev) => {
           const exists = prev.some((r) => r.chatRoomId === chatRoom.chatRoomId);
           if (exists) {
-            console.log("🔄 Updating existing chat room:", chatRoom.chatRoomId);
             // Update existing room if it already exists
             return prev.map((r) =>
               r.chatRoomId === chatRoom.chatRoomId ? { ...r, ...chatRoom } : r
             );
           }
-          console.log("➕ Adding new chat room:", chatRoom.chatRoomId);
           // Add new room
           return [...prev, chatRoom];
         });
-        
+
         // Join the SignalR group for this chat room
         if (connection) {
           connection.invoke("JoinRoom", chatRoom.chatRoomId).catch((err) => {
@@ -201,7 +190,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
           });
         }
       } else {
-        console.log("❌ User not a member of new chat room:", chatRoom.chatRoomId);
+        toast.error("Failed to join group");
       }
     },
     [user, connection]
@@ -209,7 +198,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
 
   const handleChatRoomUpdated = useCallback(
     (chatRoomId: string, newName: string) => {
-      console.log("📨 SignalR: Chat room updated:", { chatRoomId, newName });
       setChatRooms((prev) =>
         prev.map((room) =>
           room.chatRoomId === chatRoomId ? { ...room, name: newName } : room
@@ -222,7 +210,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   );
 
   const handleChatRoomDeleted = useCallback((chatRoomId: string) => {
-    console.log("📨 SignalR: Chat room deleted:", chatRoomId);
     setChatRooms((prev) => {
       const exists = prev.some((room) => room.chatRoomId === chatRoomId);
       const updated = prev.filter((room) => room.chatRoomId !== chatRoomId);
@@ -231,32 +218,39 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         toast.error("A chat room you were in has been deleted.");
         // Clear localStorage to ensure fresh data on reload
         localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
-        console.log("🧹 Cleared localStorage after chat room deletion");
       }
       return updated;
     });
     setLastAction("chatroom-deleted");
   }, []);
 
-  const handleUserAddedToChatRoom = useCallback((chatRoomId: string, userId: string) => {
-    console.log("📨 SignalR: User added to chat room:", { chatRoomId, userId });
-    if (userId === user?.id) {
-      // Refresh chat rooms to get the updated list
-      if (user?.id) {
-        getChatRoomsRelatedToUser(user.id);
+  //not yet implemented
+  const handleUserAddedToChatRoom = useCallback(
+    (chatRoomId: string, userId: string) => {
+      if (userId === user?.id) {
+        if (user?.id) {
+          getChatRoomsRelatedToUser(user.id);
+        }
       }
-    }
-    setLastAction("user-added");
-  }, [user, getChatRoomsRelatedToUser]);
+      setLastAction("user-added");
+      chatRoomId.codePointAt(4);
+    },
+    [user, getChatRoomsRelatedToUser]
+  );
 
-  const handleUserRemovedFromChatRoom = useCallback((chatRoomId: string, userId: string) => {
-    console.log("📨 SignalR: User removed from chat room:", { chatRoomId, userId });
-    if (userId === user?.id) {
-      // Remove the chat room from the list
-      setChatRooms((prev) => prev.filter((room) => room.chatRoomId !== chatRoomId));
-    }
-    setLastAction("user-removed");
-  }, [user]);
+  //not yet implemented
+  const handleUserRemovedFromChatRoom = useCallback(
+    (chatRoomId: string, userId: string) => {
+      if (userId === user?.id) {
+        // Remove the chat room from the list
+        setChatRooms((prev) =>
+          prev.filter((room) => room.chatRoomId !== chatRoomId)
+        );
+      }
+      setLastAction("user-removed");
+    },
+    [user]
+  );
 
   useEffect(() => {
     if (!connection) return;
@@ -310,9 +304,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
           if (connection?.state === signalR.HubConnectionState.Connected) {
             try {
               await connection.invoke("JoinRoom", newRoom.chatRoomId);
-              console.log(
-                `Joined SignalR group for chat room: ${newRoom.chatRoomId}`
-              );
             } catch (err) {
               console.error(
                 "Failed to join SignalR group for new chat room:",
@@ -444,7 +435,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         });
         setChatRooms((prev) =>
           prev.map((room) =>
-            room.chatRoomId === chatRoomId ? { ...room, Name: newName } : room
+            room.chatRoomId === chatRoomId ? { ...room, name: newName } : room
           )
         );
         setLastAction("chatroom-updated");
@@ -456,6 +447,72 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         } else {
           setError("An unexpected error occurred.");
         }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  const pinChatRoom = useCallback(
+    async (chatRoomId: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // For now, work locally without backend API
+        // TODO: Implement backend API endpoint for pinning
+        
+        // Update local state
+        setChatRooms((prev) =>
+          prev.map((room) =>
+            room.chatRoomId === chatRoomId ? { ...room, pinned: true } : room
+          )
+        );
+        
+        // Save to localStorage
+        const pinnedRooms = JSON.parse(localStorage.getItem("pinnedChatRooms") || "[]");
+        if (!pinnedRooms.includes(chatRoomId)) {
+          pinnedRooms.push(chatRoomId);
+          localStorage.setItem("pinnedChatRooms", JSON.stringify(pinnedRooms));
+        }
+        
+        toast.success("Chat room pinned successfully.");
+      } catch (err: unknown) {
+        const errorMessage = "Failed to pin chat room";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+  
+  );
+
+  const unpinChatRoom = useCallback(
+    async (chatRoomId: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // For now, work locally without backend API
+        // TODO: Implement backend API endpoint for unpinning
+        
+        // Update local state
+        setChatRooms((prev) =>
+          prev.map((room) =>
+            room.chatRoomId === chatRoomId ? { ...room, pinned: false } : room
+          )
+        );
+        
+        // Remove from localStorage
+        const pinnedRooms = JSON.parse(localStorage.getItem("pinnedChatRooms") || "[]");
+        const updatedPinnedRooms = pinnedRooms.filter((id: string) => id !== chatRoomId);
+        localStorage.setItem("pinnedChatRooms", JSON.stringify(updatedPinnedRooms));
+        
+        toast.success("Chat room unpinned successfully.");
+      } catch (err: unknown) {
+        const errorMessage = "Failed to unpin chat room";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -518,56 +575,51 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   );
 
   // Force refresh chat rooms from server (bypass localStorage cache)
-  const refreshChatRoomsFromServer = useCallback(
-    async (userId: string) => {
-      console.log("🔄 Force refreshing chat rooms from server for user:", userId);
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // Clear localStorage first
-        localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
-        console.log("🧹 Cleared localStorage chat rooms cache");
-        
-        // Fetch fresh data from server
-        const response = await axiosInstance.get<ApiResponse<ChatRoomType[]>>(
-          `/chatroom/user/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-            },
-          }
+  const refreshChatRoomsFromServer = useCallback(async (userId: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Clear localStorage first
+      localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
+
+      // Fetch fresh data from server
+      const response = await axiosInstance.get<ApiResponse<ChatRoomType[]>>(
+        `/chatroom/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const freshChatRooms = response.data.data ?? [];
+        setChatRooms(freshChatRooms);
+      } else {
+        console.error(
+          "❌ Failed to refresh chat rooms:",
+          response.data.message
         );
-        
-        if (response.data.success) {
-          const freshChatRooms = response.data.data ?? [];
-          console.log("✅ Refreshed chat rooms from server:", {
-            count: freshChatRooms.length,
-            rooms: freshChatRooms.map(r => ({ id: r.chatRoomId, name: r.name }))
-          });
-          setChatRooms(freshChatRooms);
-        } else {
-          console.error("❌ Failed to refresh chat rooms:", response.data.message);
-          setError(response.data.message || "Failed to refresh chat rooms");
-        }
-      } catch (err: unknown) {
-        console.error("❌ Error refreshing chat rooms:", err);
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || "Failed to refresh chat rooms.");
-        } else {
-          setError("An unexpected error occurred while refreshing chat rooms.");
-        }
-      } finally {
-        setIsLoading(false);
+        setError(response.data.message || "Failed to refresh chat rooms");
       }
-    },
-    []
-  );
+    } catch (err: unknown) {
+      console.error("❌ Error refreshing chat rooms:", err);
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message || "Failed to refresh chat rooms."
+        );
+      } else {
+        setError("An unexpected error occurred while refreshing chat rooms.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   // fetch chat rooms from server on login/page load to avoid stale localStorage
   useEffect(() => {
     if (user?.id) {
-      console.log("🔄 Fetching chat rooms for user:", user.id);
       getChatRoomsRelatedToUser(user.id);
     }
     // Optionally, clear chatRooms if user logs out
@@ -579,25 +631,30 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
 
   // Auto-refresh chat rooms when SignalR connection is established
   useEffect(() => {
-    if (connection?.state === signalR.HubConnectionState.Connected && user?.id) {
-      console.log("🔗 SignalR connected, refreshing chat rooms");
+    if (
+      connection?.state === signalR.HubConnectionState.Connected &&
+      user?.id
+    ) {
       // Small delay to ensure connection is fully established
       const timer = setTimeout(() => {
         getChatRoomsRelatedToUser(user.id);
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [connection?.state, user?.id, getChatRoomsRelatedToUser]);
 
   // Periodic refresh every 30 seconds to ensure chatrooms stay up-to-date
   useEffect(() => {
-    if (!user?.id || !connection || connection.state !== signalR.HubConnectionState.Connected) {
+    if (
+      !user?.id ||
+      !connection ||
+      connection.state !== signalR.HubConnectionState.Connected
+    ) {
       return;
     }
 
     const interval = setInterval(() => {
-      console.log("🔄 Periodic chat room refresh");
       getChatRoomsRelatedToUser(user.id);
     }, 30000); // 30 seconds
 
@@ -628,6 +685,8 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
         refreshChatRoomsFromServer,
         currentChatRoomId,
         setCurrentChatRoomId: setCurrentChatRoomIdWrapper,
+        pinChatRoom,
+        unpinChatRoom,
       }}
     >
       {children}

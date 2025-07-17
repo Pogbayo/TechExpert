@@ -41,8 +41,7 @@ export default function AuthPage() {
       } else {
         toast.error(success.error ?? "");
       }
-    } catch (err: unknown) {
-      console.log(err);
+    } catch {
       setError("Login failed.");
       toast.error("Login failed!");
     } finally {
@@ -53,26 +52,28 @@ export default function AuthPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (/\s/.test(userName)) {
+      toast.error("Username must not contain spaces. Use _ or - instead.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
     setLoading(true);
     try {
-      const success = await register(userName, email, password);
-      if (success.success) {
+      const result = await register(userName, email, password);
+      if (result.success) {
         toast.success("Registration successful!");
         setIsLogin(true);
-        setLoading(false);
         resetForm();
-      }
-    } catch (err: unknown) {
-      if (err && typeof err === "object" && "message" in err) {
-        setError((err as { message: string }).message);
-        toast.error(error);
       } else {
-        setError("Registration failed.");
+        setError(result.error || "Registration failed.");
+        toast.error(result.error || "Registration failed.");
       }
+    } catch {
+      setError("Registration failed.");
+      toast.error("Registration failed!");
     } finally {
       setLoading(false);
     }

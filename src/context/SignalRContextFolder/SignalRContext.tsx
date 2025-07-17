@@ -76,7 +76,6 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
 
         // Event listeners
         connection.onclose(() => {
-          console.log("🔌 SignalR connection closed for user:", userId);
           if (isMounted && connectionAttempts < maxAttempts) {
             setConnected(false);
             setConnectionStatus("disconnected");
@@ -84,7 +83,6 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
         });
 
         connection.onreconnecting(() => {
-          console.log("🔄 SignalR reconnecting for user:", userId);
           if (isMounted) {
             setConnected(false);
             setConnectionStatus("reconnecting");
@@ -92,7 +90,6 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
         });
 
         connection.onreconnected(() => {
-          console.log("✅ SignalR reconnected for user:", userId);
           if (isMounted) {
             setStateBasedOnConnection(connection.state);
           }
@@ -115,10 +112,8 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-            console.log("🏠 User", userId, "joining chat rooms:", chatRoomIds);
             for (const roomId of chatRoomIds) {
               await connection.invoke("JoinRoom", roomId);
-              console.log("✅ Joined room:", roomId);
             }
           } catch (err) {
             console.log("❌ Failed to join chat rooms:", err);

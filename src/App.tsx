@@ -7,16 +7,12 @@ import ProfilePage from "./components/ProfilePage";
 import InnerProviders from "./components/InnerProviders";
 import { useAuth } from "./context/AuthContextFolder/useAuth";
 
-function App() {
+export default function App() {
   const { user, isAuthChecked } = useAuth();
-
-  console.log("🚀 App render:", { user: user?.username, isAuthChecked });
-
-  // Displaying a loading animation while checking auth
   if (!isAuthChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-screen w-screen bg-[var(--color-background)] text-[var(--color-text)]">
+        <div className="text-xl font-bold animate-pulse">Checking authentication...</div>
       </div>
     );
   }
@@ -56,5 +52,3 @@ function App() {
     </>
   );
 }
-
-export default App;
