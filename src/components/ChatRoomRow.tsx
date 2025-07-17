@@ -66,7 +66,7 @@ export default function ChatRoomRow({
   );
   const [swiping, setSwiping] = useState(false);
   const [swipeX, setSwipeX] = useState(0);
-  const [ACTION_WIDTH, setACTION_WIDTH] = useState(70); // Default for desktop
+  const [_ACTION_WIDTH, setACTION_WIDTH] = useState(70); // Default for desktop
 
   useLayoutEffect(() => {
     if (openMenu === room.chatRoomId && rowRef.current) {
@@ -214,7 +214,7 @@ export default function ChatRoomRow({
                 <FiArchive className="mr-1" /> Archive
               </button>
               <button
-                onClick={(e) => {
+                onClick={(_e) => {
                   // console.log(e)
                   if (room.pinned) {
                     unpinChatRoom(room.chatRoomId);
