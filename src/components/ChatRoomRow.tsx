@@ -281,7 +281,7 @@ export default function ChatRoomRow({
           ${
             openMenu === room.chatRoomId
               ? "scale-100"
-              : "hover:scale-[1.02] active:scale-[0.98]"
+              : "hover:scale-[1.01] active:scale-[0.98]"
           }
           hover:bg-[var(--color-chat-bg)]
           select-none z-10
