@@ -96,7 +96,7 @@ body {
   width: 100vw;
   /* If you want to control scrolling: */
   /* overflow: hidden; */
-  overflow-y: auto;
+  /* overflow-y: auto; */
   /* or overflow-x: hidden; */
 }
 
