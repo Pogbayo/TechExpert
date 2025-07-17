@@ -59,6 +59,7 @@ export default function ChatLayout() {
     openChatRoom(id);
     if (isMobileView) {
       setShowChatWindow(true);
+      console.log("Opening chat window on mobile");
     }
   };
 
@@ -75,6 +76,8 @@ export default function ChatLayout() {
   //   }
   // };
 
+  // Debug log for which component is being rendered
+  console.log('ChatLayout render: isMobileView', isMobileView, 'showChatWindow', showChatWindow);
   return (
     <div className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]">
       {/* Header with dark mode toggle and profile icon (desktop only) */}

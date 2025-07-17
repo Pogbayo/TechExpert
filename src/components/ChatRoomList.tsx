@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useEffect, useRef } from "react";
 // import { createPortal } from "react-dom";
 // import {
@@ -48,6 +47,7 @@ export default function ChatRoomList({
   isDarkMode,
   isMobileView,
 }: ChatRoomListProps) {
+  console.log("Rendering ChatRoomList, isMobileView:", isMobileView);
   const {
     chatRooms,
     getChatRoomsRelatedToUser,
@@ -138,6 +138,7 @@ export default function ChatRoomList({
   //   return otherUser?.username || "Unknown";
   // };
 
+  const onlineUsers = useOnlineUsers();
   const handleSearch = async (name: string) => {
     if (!name.trim()) {
       setError("Please enter a chat room name or username to search.");
@@ -228,7 +229,7 @@ export default function ChatRoomList({
         }}
         onSelectChatRoom={onSelectChatRoom}
         compactView={compactView}
-        onlineUsers={useOnlineUsers()}
+        onlineUsers={onlineUsers}
         setCurrentChatRoomId={setCurrentChatRoomId}
         isMobileView={isMobileView}
       />

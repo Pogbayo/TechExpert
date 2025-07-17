@@ -241,6 +241,7 @@ ChatWindowPropsExtended) {
           <button
             onClick={() => {
               setShowChatWindow(false);
+              console.log("Back to chat list");
             }}
             className="cursor-pointer block md:hidden mr-2"
             aria-label="Back to chat list"

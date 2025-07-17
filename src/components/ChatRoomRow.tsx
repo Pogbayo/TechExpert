@@ -271,6 +271,7 @@ export default function ChatRoomRow({
             }
           }
         }}
+        onTouchStart={() => { if (isMobileView) console.log('TOUCH START on row'); }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -286,8 +287,8 @@ export default function ChatRoomRow({
           hover:bg-[var(--color-chat-bg)]
           select-none z-10
         `}
-        style={
-          isMobileView
+        style={{
+          ...(isMobileView
             ? {
                 transform: swiping
                   ? `translateX(${swipeX}px)`
@@ -299,9 +300,10 @@ export default function ChatRoomRow({
                 transition: swiping
                   ? "none"
                   : "transform 0.2s cubic-bezier(0.4,0,0.2,1)",
+                touchAction: 'pan-x pan-y',
               }
-            : {}
-        }
+            : {}),
+        }}
       >
         {/* Avatar */}
         {room.isGroup ? (
