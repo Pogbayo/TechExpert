@@ -454,71 +454,74 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const pinChatRoom = useCallback(
-    async (chatRoomId: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // For now, work locally without backend API
-        // TODO: Implement backend API endpoint for pinning
-        
-        // Update local state
-        setChatRooms((prev) =>
-          prev.map((room) =>
-            room.chatRoomId === chatRoomId ? { ...room, pinned: true } : room
-          )
-        );
-        
-        // Save to localStorage
-        const pinnedRooms = JSON.parse(localStorage.getItem("pinnedChatRooms") || "[]");
-        if (!pinnedRooms.includes(chatRoomId)) {
-          pinnedRooms.push(chatRoomId);
-          localStorage.setItem("pinnedChatRooms", JSON.stringify(pinnedRooms));
-        }
-        
-        toast.success("Chat room pinned successfully.");
-      } catch (err: unknown) {
-        const errorMessage = "Failed to pin chat room";
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-  
-  );
+  const pinChatRoom = useCallback(async (chatRoomId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // For now, work locally without backend API
+      // TODO: Implement backend API endpoint for pinning
 
-  const unpinChatRoom = useCallback(
-    async (chatRoomId: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // For now, work locally without backend API
-        // TODO: Implement backend API endpoint for unpinning
-        
-        // Update local state
-        setChatRooms((prev) =>
-          prev.map((room) =>
-            room.chatRoomId === chatRoomId ? { ...room, pinned: false } : room
-          )
-        );
-        
-        // Remove from localStorage
-        const pinnedRooms = JSON.parse(localStorage.getItem("pinnedChatRooms") || "[]");
-        const updatedPinnedRooms = pinnedRooms.filter((id: string) => id !== chatRoomId);
-        localStorage.setItem("pinnedChatRooms", JSON.stringify(updatedPinnedRooms));
-        
-        toast.success("Chat room unpinned successfully.");
-      } catch (err: unknown) {
-        const errorMessage = "Failed to unpin chat room";
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoading(false);
+      // Update local state
+      setChatRooms((prev) =>
+        prev.map((room) =>
+          room.chatRoomId === chatRoomId ? { ...room, pinned: true } : room
+        )
+      );
+
+      // Save to localStorage
+      const pinnedRooms = JSON.parse(
+        localStorage.getItem("pinnedChatRooms") || "[]"
+      );
+      if (!pinnedRooms.includes(chatRoomId)) {
+        pinnedRooms.push(chatRoomId);
+        localStorage.setItem("pinnedChatRooms", JSON.stringify(pinnedRooms));
       }
-    },
-    []
-  );
+
+      toast.success("Chat room pinned successfully.");
+    } catch {
+      const errorMessage = "Failed to pin chat room";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const unpinChatRoom = useCallback(async (chatRoomId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // For now, work locally without backend API
+      // TODO: Implement backend API endpoint for unpinning
+
+      // Update local state
+      setChatRooms((prev) =>
+        prev.map((room) =>
+          room.chatRoomId === chatRoomId ? { ...room, pinned: false } : room
+        )
+      );
+
+      // Remove from localStorage
+      const pinnedRooms = JSON.parse(
+        localStorage.getItem("pinnedChatRooms") || "[]"
+      );
+      const updatedPinnedRooms = pinnedRooms.filter(
+        (id: string) => id !== chatRoomId
+      );
+      localStorage.setItem(
+        "pinnedChatRooms",
+        JSON.stringify(updatedPinnedRooms)
+      );
+
+      toast.success("Chat room unpinned successfully.");
+    } catch {
+      const errorMessage = "Failed to unpin chat room";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const getPrivateChatRoom = useCallback(
     async (

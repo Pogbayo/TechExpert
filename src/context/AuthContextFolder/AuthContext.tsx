@@ -9,6 +9,7 @@ import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import type { ApplicationUser } from "../../Types/EntityTypes/ApplicationUser";
 import axiosInstance from "../../IAxios/axiosInstance";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
+// import toast from "react-hot-toast";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const decoded: { exp: number } = jwtDecode(token);
       const isValid = decoded.exp * 1000 > Date.now();
       return isValid;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userData = JSON.parse(storedUser);
         setUser(userData);
-      } catch (error) {
+      } catch {
         logout();
       }
     } else if (storedToken && !isTokenValid(storedToken)) {
@@ -163,8 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.data.success && response.data.data) {
         setfetchedUser(response.data.data);
       }
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message: string }>;
+    } catch {
+      console.log("Failed to fetch user");
     }
   }
 
