@@ -26,10 +26,11 @@ import { FiLogOut, FiPlus, FiSearch } from "react-icons/fi";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
-  onSelectChatRoom: (id: string) => void;
+  onSelectChatRoom: (chatRoomId: string) => void;
   toggleDarkMode: () => void;
   isDarkMode: boolean;
   isMobileView: boolean;
+  setShowChatWindow?: (val: boolean) => void;
 }
 
 function getLastMessage(messages: Message[] | null | undefined) {
@@ -46,6 +47,7 @@ export default function ChatRoomList({
   toggleDarkMode,
   // isDarkMode,
   isMobileView,
+  setShowChatWindow,
 }: ChatRoomListProps) {
   // console.log("Rendering ChatRoomList, isMobileView:", isMobileView);
   const {
@@ -350,6 +352,8 @@ export default function ChatRoomList({
               onSelectChatRoom(chatRoomId);
               setShowAllUsers(false);
             }}
+            setShowChatWindow={setShowChatWindow}
+            isMobileView={isMobileView}
           />
         ) : (
           <ul className="space-y-3">

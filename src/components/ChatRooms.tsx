@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useUser } from "../context/UserContextFolder/useUser";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
@@ -8,10 +8,14 @@ import { useMessage } from "../context/MessageContextFolder/useMessage";
 
 export default function ChatRooms({
   onUserOrGroupSelected,
+  setShowChatWindow,
+  isMobileView,
 }: {
   onUserOrGroupSelected?: (chatRoomId: string) => void;
+  setShowChatWindow?: (val: boolean) => void;
+  isMobileView?: boolean;
 }) {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const { fetchNonMutualFriends, nonMutualFriends, fetchUsers, users } =
     useUser();
@@ -96,8 +100,9 @@ export default function ChatRooms({
       // Set the current chat room and open it
       setCurrentChatRoomId(newGroup.chatRoomId);
       openChatRoom(newGroup.chatRoomId);
+      if (isMobileView && setShowChatWindow) setShowChatWindow(true);
       if (onUserOrGroupSelected) onUserOrGroupSelected(newGroup.chatRoomId);
-      navigate(`/chat/${newGroup.chatRoomId}`);
+      // navigate(`/chat/${newGroup.chatRoomId}`); // You can remove this if you don't use navigation
     }
   };
 

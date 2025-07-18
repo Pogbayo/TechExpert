@@ -125,6 +125,7 @@ export default function ChatLayout() {
               onSelectChatRoom={handleSelectChatRoom}
               toggleDarkMode={toggleTheme}
               isDarkMode={isDarkMode}
+              setShowChatWindow={setShowChatWindow}
             />
           </div>
         )}
