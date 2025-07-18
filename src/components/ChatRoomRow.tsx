@@ -138,6 +138,10 @@ export default function ChatRoomRow({
       setSwipeX(0);
     },
     trackMouse: true, // allow mouse drag for testing
+    preventDefaultTouchmoveEvent: true, // Prevent default touch behavior
+    trackTouch: true, // Ensure touch tracking is enabled
+    delta: 10, // Minimum distance for swipe
+    swipeDuration: 500, // Maximum time for swipe
   });
   const { ref: _swipeableRef, ...swipeableHandlers } = handlers;
 

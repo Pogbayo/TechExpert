@@ -329,7 +329,10 @@ export default function ChatRoomList({
               onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search"
               className="bg-transparent outline-none flex-1 text-sm ml-2"
-              style={{ color: "var(--color-text)" }}
+              style={{ 
+                color: "var(--color-text)",
+                fontSize: "16px" // Prevent iOS zoom
+              }}
             />
           </form>
           {chatRoom && (

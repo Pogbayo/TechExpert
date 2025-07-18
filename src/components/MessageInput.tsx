@@ -58,7 +58,10 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
           }
         }}
         rows={1}
-        style={{height: '40px'}}
+        style={{
+          height: '40px',
+          fontSize: '16px' // Prevent iOS zoom
+        }}
       />
       <button
         className="bg-blue-500 text-white p-2 rounded-r cursor-pointer min-w-[40px] flex items-center justify-center"

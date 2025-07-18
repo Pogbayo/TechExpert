@@ -120,6 +120,7 @@ export default function AuthPage() {
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your email"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             <div>
@@ -132,6 +133,7 @@ export default function AuthPage() {
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your password"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
@@ -171,8 +173,10 @@ export default function AuthPage() {
                 name="userName"
                 value={userName}
                 onChange={handleInput}
+                required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="choose a username"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             <div>
@@ -185,6 +189,7 @@ export default function AuthPage() {
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your email"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             <div>
@@ -197,6 +202,7 @@ export default function AuthPage() {
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="create a password"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             <div>
@@ -209,6 +215,7 @@ export default function AuthPage() {
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="confirm your password"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}

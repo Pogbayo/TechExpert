@@ -57,6 +57,8 @@ ChatWindowPropsExtended) {
       }
     },
     delta: 50,
+    trackTouch: true, // Ensure touch tracking is enabled
+    swipeDuration: 500, // Maximum time for swipe
   });
 
   const { connection } = useSignal();
