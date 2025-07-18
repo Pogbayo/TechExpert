@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 //   FiMoreVertical,
 //   FiX,
 // } from "react-icons/fi";
-import { IoMdArrowRoundBack } from "react-icons/io";
+// import { IoMdArrowRoundBack } from "react-icons/io";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
@@ -44,7 +44,7 @@ function getLastMessage(messages: Message[] | null | undefined) {
 export default function ChatRoomList({
   onSelectChatRoom,
   toggleDarkMode,
-  isDarkMode,
+  // isDarkMode,
   isMobileView,
 }: ChatRoomListProps) {
   // console.log("Rendering ChatRoomList, isMobileView:", isMobileView);
@@ -239,6 +239,16 @@ export default function ChatRoomList({
   // const onlineUsers = useOnlineUsers();
   const navigate = useNavigate();
 
+  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
       className="flex flex-col h-full w-full bg-[var(--color-background)] relative overflow-hidden chatroom-list-body"
@@ -290,17 +300,6 @@ export default function ChatRoomList({
           </button>
 
           <button
-            onClick={() => {
-              setShowAllUsers((prev) => !prev);
-              setPlus((prev) => !prev);
-            }}
-            className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-green-500"
-            title={plus ? "Add user" : "Back"}
-          >
-            {plus ? <FiPlus /> : <IoMdArrowRoundBack />}
-          </button>
-
-          <button
             onClick={() => navigate("/profile")}
             className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-blue-500"
             title="View my profile"
@@ -343,6 +342,7 @@ export default function ChatRoomList({
         </>
       )}
 
+      {/* Main Chat Room List */}
       <div className="flex-1 mt-[var(--space-4)] px-[var(--space-4)] pb-[var(--space-6)] overflow-y-auto scrollbar-hide">
         {showAllUsers ? (
           <ChatRooms
@@ -382,6 +382,19 @@ export default function ChatRoomList({
           </ul>
         )}
       </div>
+      {/* Floating Plus Button (absolute to ChatRoomList container) */}
+      <button
+        onClick={() => {
+          setShowAllUsers((prev) => !prev);
+          setPlus((prev) => !prev);
+        }}
+        className={`absolute bottom-6 right-6 z-20 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all text-3xl
+          ${isDarkMode ? 'bg-white text-blue-600 hover:bg-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+        title={plus ? "Add user or join group" : "Back"}
+        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
+      >
+        <FiPlus />
+      </button>
     </div>
   );
 }

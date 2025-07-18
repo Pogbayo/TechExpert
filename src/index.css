@@ -102,8 +102,17 @@ body {
   width: 100vw;
   /* If you want to control scrolling: */
   overflow: hidden;
+  font-family: sans-serif;
   /* overflow-y: auto; */
   /* or overflow-x: hidden; */
+}
+
+html, body, .app {
+  font-family:  sans-serif;
+}
+
+* , *::before, *::after {
+  font-family: sans-serif !important;
 }
 
 .menu-popout {

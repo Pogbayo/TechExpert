@@ -79,38 +79,44 @@ export default function AuthPage() {
     }
   };
 
-  // Ensure theme is applied on mount (for direct refresh)
-  useEffect(() => {
-    const applyTheme = () => {
-      const storedTheme = localStorage.getItem("theme");
-      if (storedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    };
-    applyTheme();
-    // Listen for theme changes in localStorage (e.g., from another tab or after toggling)
-    window.addEventListener("storage", applyTheme);
-    return () => window.removeEventListener("storage", applyTheme);
-  }, []);
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "email") setEmail(value);
+    else if (name === "password") setPassword(value);
+    else if (name === "confirmPassword") setConfirmPassword(value);
+    else if (name === "userName") setUserName(value);
+  };
+
+  // useEffect(() => {
+  //   const applyTheme = () => {
+  //     const storedTheme = localStorage.getItem("theme");
+  //     if (storedTheme === "dark") {
+  //       document.documentElement.classList.add("dark");
+  //     } else {
+  //       document.documentElement.classList.remove("dark");
+  //     }
+  //   };
+  //   applyTheme();
+  //   window.addEventListener("storage", applyTheme);
+  //   return () => window.removeEventListener("storage", applyTheme);
+  // }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 px-2 text-[var(--color-text)] transition-colors duration-300 overflow-hidden">
-      <div className={`bg-[var(--color-background)] p-6 rounded-2xl shadow-2xl w-full max-w-sm border border-[var(--color-border)] flex flex-col items-center animate-fade-in ${isLogin ? 'h-auto' : 'min-h-[80vh] justify-center'} px-4`}>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 px-2 text-[var(--color-text)] transition-colors duration-300 overflow-hidden font-sans">
+      <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm border border-[var(--color-border)] flex flex-col items-center animate-fade-in h-auto px-4 font-sans">
         {/* Logo/Icon */}
         <img src="https://api.iconify.design/mdi:chat-outline.svg?color=white" alt="Spag Chat Logo" className="w-14 h-14 mb-2 drop-shadow-lg bg-black rounded-full p-2" />
         <h1 className="text-2xl font-extrabold mb-1 text-black tracking-tight">Spag Chat</h1>
         <p className="mb-4 text-gray-600 text-center text-sm">Connect, chat, and share instantly.</p>
-        {/* Removed Login/Register tab buttons here */}
         {isLogin ? (
           <form onSubmit={handleLogin} className="space-y-4 w-full animate-fade-in">
             <div>
               <label className="block mb-1 text-black">Email:</label>
               <input
                 type="email"
+                name="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleInput}
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your email"
@@ -120,8 +126,9 @@ export default function AuthPage() {
               <label className="block mb-1 text-black">Password:</label>
               <input
                 type="password"
+                name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleInput}
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your password"
@@ -161,8 +168,9 @@ export default function AuthPage() {
               <label className="block mb-1 text-black">Username:</label>
               <input
                 type="text"
+                name="userName"
                 value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                onChange={handleInput}
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="choose a username"
               />
@@ -171,8 +179,9 @@ export default function AuthPage() {
               <label className="block mb-1 text-black">Email:</label>
               <input
                 type="text"
+                name="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleInput}
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="enter your email"
@@ -182,8 +191,9 @@ export default function AuthPage() {
               <label className="block mb-1 text-black">Password:</label>
               <input
                 type="password"
+                name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleInput}
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="create a password"
@@ -193,8 +203,9 @@ export default function AuthPage() {
               <label className="block mb-1 text-black">Confirm Password:</label>
               <input
                 type="password"
+                name="confirmPassword"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={handleInput}
                 required
                 className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
                 placeholder="confirm your password"
