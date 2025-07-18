@@ -37,8 +37,8 @@ export function formatLastMessageTime(timestamp: string | number | Date | null |
     // Yesterday - show "Yesterday with time on new line
     return `Yesterday\n${format(date, "h:mm a")}`;
   } else {
-    // Older - show exact date and time
-    return format(date, "MMM dd, yyyy 'at' h:mm a");
+    // Older - show short date (MM/dd/yy)
+    return format(date, "MM/dd/yy");
   }
 }
 

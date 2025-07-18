@@ -81,175 +81,148 @@ export default function AuthPage() {
 
   // Ensure theme is applied on mount (for direct refresh)
   useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    if (storedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    const applyTheme = () => {
+      const storedTheme = localStorage.getItem("theme");
+      if (storedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    };
+    applyTheme();
+    // Listen for theme changes in localStorage (e.g., from another tab or after toggling)
+    window.addEventListener("storage", applyTheme);
+    return () => window.removeEventListener("storage", applyTheme);
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[var(--color-background)] px-4 text-[var(--color-text)] transition-colors duration-300">
-      <div className="bg-[var(--color-background)] p-8 rounded-2xl shadow-2xl w-full max-w-md border border-[var(--color-border)]">
-        <div className="flex justify-between mb-6">
-          <button
-            onClick={() => {
-              setIsLogin(true);
-              resetForm();
-            }}
-            className={`w-1/2 py-3 rounded-b-sm font-semibold transition text-[var(--color-text)] ${
-              isLogin
-                ? "bg-[var(--color-primary)] text-white"
-                : "bg-[var(--color-border)]"
-            }`}
-            disabled={loading}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setIsLogin(false);
-              resetForm();
-            }}
-            className={`w-1/2 py-3 rounded-b-sm font-semibold transition text-[var(--color-text)] ${
-              !isLogin
-                ? "bg-[var(--color-primary)] text-white"
-                : "bg-[var(--color-border)]"
-            }`}
-            disabled={loading}
-          >
-            Register
-          </button>
-        </div>
-
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 px-2 text-[var(--color-text)] transition-colors duration-300 overflow-hidden">
+      <div className={`bg-[var(--color-background)] p-6 rounded-2xl shadow-2xl w-full max-w-sm border border-[var(--color-border)] flex flex-col items-center animate-fade-in ${isLogin ? 'h-auto' : 'min-h-[80vh] justify-center'} px-4`}>
+        {/* Logo/Icon */}
+        <img src="https://api.iconify.design/mdi:chat-outline.svg?color=white" alt="Spag Chat Logo" className="w-14 h-14 mb-2 drop-shadow-lg bg-black rounded-full p-2" />
+        <h1 className="text-2xl font-extrabold mb-1 text-black tracking-tight">Spag Chat</h1>
+        <p className="mb-4 text-gray-600 text-center text-sm">Connect, chat, and share instantly.</p>
+        {/* Removed Login/Register tab buttons here */}
         {isLogin ? (
-          <form onSubmit={handleLogin} className="space-y-5 animate-fade-in">
-            <h2 className="text-2xl font-medium mb-4 text-center text-[var(--color-text)]">
-              Login
-            </h2>
+          <form onSubmit={handleLogin} className="space-y-4 w-full animate-fade-in">
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Email:
-              </label>
+              <label className="block mb-1 text-black">Email:</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="enter your email"
               />
             </div>
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Password:
-              </label>
+              <label className="block mb-1 text-black">Password:</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="enter your password"
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              className="w-full bg-black text-white py-3 font-bold shadow-md hover:bg-gray-800 transition flex justify-center items-center border-none rounded-none"
               disabled={loading}
             >
               {loading ? (
-                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
+                <span className="loader-dots">
+                  <span></span><span></span><span></span>
+                </span>
               ) : (
                 "Login"
               )}
             </button>
-            <p className="text-center text-[var(--color-text)] mt-4">
-              Don't have an account?{" "}
+            <p className="text-center mt-2 text-black text-sm">
+              Don't have an account?{' '}
               <span
                 onClick={() => {
                   setIsLogin(false);
                   resetForm();
                 }}
-                className="text-[var(--color-primary)] font-semibold cursor-pointer hover:underline"
+                className="font-semibold cursor-pointer underline hover:opacity-80"
+                style={{ color: '#6C63FF' }}
               >
                 Register here
               </span>
             </p>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="space-y-5 animate-fade-in">
-            <h2 className="text-3xl font-bold mb-4 text-center text-[var(--color-text)]">
-              Register
-            </h2>
+          <form onSubmit={handleRegister} className="space-y-4 w-full animate-fade-in">
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Username:
-              </label>
+              <label className="block mb-1 text-black">Username:</label>
               <input
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              />{" "}
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="choose a username"
+              />
             </div>
-
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Email:
-              </label>
+              <label className="block mb-1 text-black">Email:</label>
               <input
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="enter your email"
               />
             </div>
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Password:
-              </label>
+              <label className="block mb-1 text-black">Password:</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="create a password"
               />
             </div>
             <div>
-              <label className="block mb-1 text-[var(--color-text)]">
-                Confirm Password:
-              </label>
+              <label className="block mb-1 text-black">Confirm Password:</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full p-3 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 text-black font-medium placeholder-gray-400"
+                placeholder="confirm your password"
               />
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center"
+              className="w-full bg-black text-white py-3 font-bold shadow-md hover:bg-gray-800 transition flex justify-center items-center border-none rounded-none"
               disabled={loading}
             >
               {loading ? (
-                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
+                <span className="loader-dots">
+                  <span></span><span></span><span></span>
+                </span>
               ) : (
                 "Register"
               )}
             </button>
-            <p className="text-center text-[var(--color-text)] mt-4">
-              Already have an account?{" "}
+            <p className="text-center mt-2 text-black text-sm">
+              Already have an account?{' '}
               <span
                 onClick={() => {
                   setIsLogin(true);
                   resetForm();
                 }}
-                className="text-[var(--color-primary)] font-semibold cursor-pointer hover:underline"
+                className="font-semibold cursor-pointer underline hover:opacity-80"
+                style={{ color: '#6C63FF' }}
               >
                 Login here
               </span>
@@ -257,6 +230,29 @@ export default function AuthPage() {
           </form>
         )}
       </div>
+      <style>{`
+        .loader-dots {
+          display: inline-block;
+          width: 24px;
+          height: 16px;
+          text-align: center;
+        }
+        .loader-dots span {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          margin: 0 1px;
+          background: #fff;
+          border-radius: 50%;
+          animation: loader-dots-bounce 1.2s infinite ease-in-out both;
+        }
+        .loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes loader-dots-bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

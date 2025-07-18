@@ -11,8 +11,8 @@ import { FaArrowLeft } from "react-icons/fa";
 // import { useNavigate } from "react-router-dom";
 import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import * as signalR from "@microsoft/signalr";
-import { useSwipeable } from 'react-swipeable';
-import { useNavigate } from 'react-router-dom';
+import { useSwipeable } from "react-swipeable";
+import { useNavigate } from "react-router-dom";
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -236,7 +236,7 @@ ChatWindowPropsExtended) {
   return (
     <div {...handlers} className="flex flex-col h-full w-full">
       {/* Top Bar (Header) */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between relative sticky top-0 z-20">
+      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between sticky top-0 z-20">
         {isMobileView && (
           <button
             onClick={() => {
@@ -269,26 +269,34 @@ ChatWindowPropsExtended) {
             </svg>
           </div>
         ) : otherUser ? (
-          <div className="flex items-center justify-end ml-2 cursor-pointer" onClick={() => setShowOtherProfile(true)} title="View profile">
+          <div
+            className="flex items-center justify-end ml-2 cursor-pointer"
+            onClick={() => setShowOtherProfile(true)}
+            title="View profile"
+          >
             <img
-              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(otherUser.username || "user")}`}
+              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+                otherUser.username || "user"
+              )}`}
               alt="user avatar"
               className="w-10 h-10 rounded-full bg-gray-200 object-cover border-2 border-white"
-              onError={e => {
+              onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = document.createElement('div');
-                fallback.style.width = '40px';
-                fallback.style.height = '40px';
-                fallback.style.borderRadius = '50%';
-                fallback.style.background = '#e0e0e0';
-                fallback.style.display = 'flex';
-                fallback.style.alignItems = 'center';
-                fallback.style.justifyContent = 'center';
-                fallback.style.fontWeight = 'bold';
-                fallback.style.fontSize = '18px';
-                fallback.style.color = '#888';
-                fallback.innerText = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+                target.style.display = "none";
+                const fallback = document.createElement("div");
+                fallback.style.width = "40px";
+                fallback.style.height = "40px";
+                fallback.style.borderRadius = "50%";
+                fallback.style.background = "#e0e0e0";
+                fallback.style.display = "flex";
+                fallback.style.alignItems = "center";
+                fallback.style.justifyContent = "center";
+                fallback.style.fontWeight = "bold";
+                fallback.style.fontSize = "18px";
+                fallback.style.color = "#888";
+                fallback.innerText = otherUser.username
+                  ? otherUser.username.charAt(0).toUpperCase()
+                  : "?";
                 target.parentNode?.insertBefore(fallback, target.nextSibling);
               }}
             />
@@ -312,21 +320,23 @@ ChatWindowPropsExtended) {
               )}`}
               alt="user avatar"
               className="w-24 h-24 rounded-full shadow mb-4 bg-gray-200 object-cover"
-              onError={e => {
+              onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = document.createElement('div');
-                fallback.style.width = '96px';
-                fallback.style.height = '96px';
-                fallback.style.borderRadius = '50%';
-                fallback.style.background = '#e0e0e0';
-                fallback.style.display = 'flex';
-                fallback.style.alignItems = 'center';
-                fallback.style.justifyContent = 'center';
-                fallback.style.fontWeight = 'bold';
-                fallback.style.fontSize = '40px';
-                fallback.style.color = '#888';
-                fallback.innerText = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+                target.style.display = "none";
+                const fallback = document.createElement("div");
+                fallback.style.width = "96px";
+                fallback.style.height = "96px";
+                fallback.style.borderRadius = "50%";
+                fallback.style.background = "#e0e0e0";
+                fallback.style.display = "flex";
+                fallback.style.alignItems = "center";
+                fallback.style.justifyContent = "center";
+                fallback.style.fontWeight = "bold";
+                fallback.style.fontSize = "40px";
+                fallback.style.color = "#888";
+                fallback.innerText = otherUser.username
+                  ? otherUser.username.charAt(0).toUpperCase()
+                  : "?";
                 target.parentNode?.insertBefore(fallback, target.nextSibling);
               }}
             />

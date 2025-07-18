@@ -1,0 +1,34 @@
+{
+  "name": "Spag Chat",
+  "short_name": "Spag Chat",
+  "start_url": "/",
+  "id": "/pwa/spagchat",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1770c9",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+  {
+    "src": "/screen-wideh.png",
+    "sizes": "1280x720",
+    "type": "image/png",
+    "form_factor": "wide"
+  },
+  {
+    "src": "/screen-phn.png",
+    "sizes": "360x640",
+    "type": "image/png"
+  }
+]
+}

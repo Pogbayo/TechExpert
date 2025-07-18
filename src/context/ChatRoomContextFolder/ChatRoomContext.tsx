@@ -88,7 +88,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     },
     [setMessageContextChatRoomId]
   );
-
   // const { fetchMessagesByChatRoomId } = useMessage();
 
   useEffect(() => {
@@ -633,36 +632,36 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   }, [user?.id, getChatRoomsRelatedToUser]);
 
   // Auto-refresh chat rooms when SignalR connection is established
-  useEffect(() => {
-    if (
-      connection?.state === signalR.HubConnectionState.Connected &&
-      user?.id
-    ) {
-      // Small delay to ensure connection is fully established
-      const timer = setTimeout(() => {
-        getChatRoomsRelatedToUser(user.id);
-      }, 1000);
+  // useEffect(() => {
+  //   if (
+  //     connection?.state === signalR.HubConnectionState.Connected &&
+  //     user?.id
+  //   ) {
+  //     // Small delay to ensure connection is fully established
+  //     const timer = setTimeout(() => {
+  //       getChatRoomsRelatedToUser(user.id);
+  //     }, 1000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [connection?.state, user?.id, getChatRoomsRelatedToUser]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [connection?.state, user?.id, getChatRoomsRelatedToUser]);
 
   // Periodic refresh every 30 seconds to ensure chatrooms stay up-to-date
-  useEffect(() => {
-    if (
-      !user?.id ||
-      !connection ||
-      connection.state !== signalR.HubConnectionState.Connected
-    ) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (
+  //     !user?.id ||
+  //     !connection ||
+  //     connection.state !== signalR.HubConnectionState.Connected
+  //   ) {
+  //     return;
+  //   }
 
-    const interval = setInterval(() => {
-      getChatRoomsRelatedToUser(user.id);
-    }, 30000); // 30 seconds
+  //   const interval = setInterval(() => {
+  //     getChatRoomsRelatedToUser(user.id);
+  //   }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
-  }, [user?.id, connection, getChatRoomsRelatedToUser]);
+  //   return () => clearInterval(interval);
+  // }, [user?.id, connection, getChatRoomsRelatedToUser]);
 
   return (
     <ChatRoomContext.Provider

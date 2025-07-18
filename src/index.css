@@ -48,13 +48,19 @@
   .dark {
     --color-primary: #2563eb;          /* Darker blue */
     --color-secondary: #1e40af;        /* Dark blue */
-    --color-background: #1f2937;       /* Darkish gray background */
-    --color-chat-bg: #1e293b;          /* Dark chat bubble */
+    --color-background: #23272f;       /* Lighter black for dark mode */
+    --color-chat-bg: #2d323b;          /* Slightly lighter dark for chat bubble */
     --color-chat-text: #60a5fa;        /* Light blue chat text */
     --color-text: #f9fafb;             /* General light text color */
     --color-border: #334155;           /* Darker border */
-    --color-input-bg: #1e293b;         /* Input background */
+    --color-input-bg: #23272f;         /* Input background matches new dark bg */
     --color-input-text: #e0e7ff;       /* Input text color (lighter) */
+  }
+  .chatroom-list-body {
+    background-color: #f5f6fa !important; /* Light gray for chat room list in light mode */
+  }
+  .dark .chatroom-list-body {
+    background-color: #23272f !important; /* Match dark background for chat room list in dark mode */
   }
 }
 

@@ -93,7 +93,7 @@ export default function ChatRoomRow({
 
   useEffect(() => {
     const handleResize = () => {
-      setACTION_WIDTH(isMobileView ? 70 : 140); // Adjust for mobile/desktop
+      setACTION_WIDTH(isMobileView ? 70 : 140);
       const menuHeight = 140;
       if (rowRef.current) {
         const rect = rowRef.current.getBoundingClientRect();
@@ -105,11 +105,11 @@ export default function ChatRoomRow({
         }));
         setMenuPos({
           top: shouldShowAbove ? rect.top - menuHeight - 8 : rect.bottom + 8,
-          left: rect.right - 140, // menu width
+          left: rect.right - 140,
         });
       }
     };
-    handleResize(); // Set initial value
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobileView, room.chatRoomId, setShowAbove, setMenuPos]);
@@ -149,10 +149,12 @@ export default function ChatRoomRow({
     }
   }, [swiping, swipeAction]);
   // console.log(ACTION_WIDTH)
+
   const messages = messagesByChatRoomId[room.chatRoomId] || [];
   const lastMessage =
     messages.length > 0 ? messages[messages.length - 1] : null;
-
+  console.log(lastMessage);
+  console.log(room.name);
   const getChatRoomName = (room: ChatRoomType) => {
     if (room.isGroup) {
       const name = room.name.trim();
@@ -170,7 +172,9 @@ export default function ChatRoomRow({
     setCurrentChatRoomId(room.chatRoomId);
     onSelectChatRoom?.(room.chatRoomId);
   };
-
+  const logMesssagesByChatRoomId = (room: ChatRoomType) => {
+    console.log(messagesByChatRoomId[room.chatRoomId]);
+  };
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpenMenu(openMenu === room.chatRoomId ? null : room.chatRoomId);
@@ -186,7 +190,10 @@ export default function ChatRoomRow({
   };
 
   return (
-    <div className="relative mb-3">
+    <div
+      className="relative mb-3"
+      onClick={() => logMesssagesByChatRoomId(room)}
+    >
       {/* Swipe actions for mobile (z-0, behind row) */}
       {isMobileView && (
         <>
@@ -271,7 +278,9 @@ export default function ChatRoomRow({
             }
           }
         }}
-        onTouchStart={() => { if (isMobileView) console.log('TOUCH START on row'); }}
+        onTouchStart={() => {
+          if (isMobileView) console.log("TOUCH START on row");
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -300,9 +309,9 @@ export default function ChatRoomRow({
                 transition: swiping
                   ? "none"
                   : "transform 0.2s cubic-bezier(0.4,0,0.2,1)",
-                touchAction: 'pan-x pan-y',
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
+                touchAction: "pan-x pan-y",
+                WebkitTouchCallout: "none",
+                WebkitUserSelect: "none",
               }
             : {}),
         }}
@@ -382,7 +391,7 @@ export default function ChatRoomRow({
           {/* Last message and timestamp row (same row) */}
           <div className="flex items-center w-full min-w-0">
             <p
-              className={`truncate italic flex-1 min-w-0 ${
+              className={`truncate flex-1 min-w-0 ${
                 compactView ? "text-xs" : "text-sm"
               }`}
               style={{
@@ -504,23 +513,3 @@ export default function ChatRoomRow({
     </div>
   );
 }
-
-/*
-Add this to your CSS or Tailwind config:
-.menu-popout {
-  opacity: 0;
-  transform: scale(0.6);
-  pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-.menu-popout.menu-popout-in {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-.menu-popout.menu-popout-out {
-  opacity: 0;
-  transform: scale(0.6);
-  pointer-events: none;
-}
-*/

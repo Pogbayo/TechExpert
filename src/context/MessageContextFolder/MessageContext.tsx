@@ -121,19 +121,19 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       );
 
       if (response.data.success && response.data.data) {
-        setmessagesByChatRoomId((prev) => {
-          const roomId = chatRoomId;
-          const existingMessages = prev[roomId] || [];
-          // Avoid duplicates if SignalR also adds it
-          const alreadyExists = existingMessages.some(
-            (msg) => msg.messageId === response.data.data!.messageId
-          );
-          if (alreadyExists) return prev;
-          return {
-            ...prev,
-            [roomId]: [...existingMessages, response.data.data!],
-          };
-        });
+        // setmessagesByChatRoomId((prev) => {
+        //   const roomId = chatRoomId;
+        //   const existingMessages = prev[roomId] || [];
+        //   // Avoid duplicates if SignalR also adds it
+        //   const alreadyExists = existingMessages.some(
+        //     (msg) => msg.messageId === response.data.data!.messageId
+        //   );
+        //   if (alreadyExists) return prev;
+        //   return {
+        //     ...prev,
+        //     [roomId]: [...existingMessages, response.data.data!],
+        //   };
+        // });
         setIsMessageSent(true);
       } else {
         setError(response.data.message || "Failed to send message.");

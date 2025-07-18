@@ -77,7 +77,7 @@ export default function ChatLayout() {
   // };
 
   // Debug log for which component is being rendered
-  console.log('ChatLayout render: isMobileView', isMobileView, 'showChatWindow', showChatWindow);
+  // console.log('ChatLayout render: isMobileView', isMobileView, 'showChatWindow', showChatWindow);
   return (
     <div className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]">
       {/* Header with dark mode toggle and profile icon (desktop only) */}
@@ -129,8 +129,7 @@ export default function ChatLayout() {
           </div>
         )}
 
-        {(!isMobileView && true) ||
-        (isMobileView && showChatWindow) ? (
+        {(!isMobileView && true) || (isMobileView && showChatWindow) ? (
           <div className="flex-1 p-0 flex flex-col bg-[var(--color-background)] min-h-[50vh]">
             <ChatWindow
               selectedChatRoomId={selectedChatRoomId}

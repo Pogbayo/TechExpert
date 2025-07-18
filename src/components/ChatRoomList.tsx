@@ -47,7 +47,7 @@ export default function ChatRoomList({
   isDarkMode,
   isMobileView,
 }: ChatRoomListProps) {
-  console.log("Rendering ChatRoomList, isMobileView:", isMobileView);
+  // console.log("Rendering ChatRoomList, isMobileView:", isMobileView);
   const {
     chatRooms,
     getChatRoomsRelatedToUser,
@@ -241,7 +241,7 @@ export default function ChatRoomList({
 
   return (
     <div
-      className="flex flex-col h-full w-full bg-[var(--color-background)] relative overflow-hidden"
+      className="flex flex-col h-full w-full bg-[var(--color-background)] relative overflow-hidden chatroom-list-body"
       style={{ fontFamily: "var(--font-primary)" }}
     >
       {/* Top Bar */}
