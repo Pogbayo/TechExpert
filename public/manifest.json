@@ -5,7 +5,7 @@
   "id": "/pwa/spagchat",
   "display": "standalone",
   "background_color": "#2d323b",
-  "theme_color": "#1770c9",
+  "theme_color": "#2d323b",
   "icons": [
     {
       "src": "/icon-192.png",

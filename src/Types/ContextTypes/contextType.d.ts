@@ -47,7 +47,7 @@ export type UserContextType = {
   isLoading: boolean;
   error: string | null;
   nonMutualFriends: ApplicationUser[] | null;
- fetchNonMutualFriends: (userId: string) => Promise<void>;
+  fetchNonMutualFriends: (userId: string) => Promise<void>;
 }
 
 export type ChatRoomUserContextType = {
@@ -83,6 +83,7 @@ export type ChatRoomContextType = {
   currentChatRoomId: string | null;
   setCurrentChatRoomId: (id: string | null) => void;
   pinChatRoom: (chatRoomId: string) => Promise<void>;
+  isDarkMode:boolean;
   unpinChatRoom: (chatRoomId: string) => Promise<void>;
 };
 

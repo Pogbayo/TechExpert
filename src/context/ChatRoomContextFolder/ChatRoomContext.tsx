@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../AuthContextFolder/useAuth";
 import * as signalR from "@microsoft/signalr";
 import { useMessage } from "../MessageContextFolder/useMessage";
+import { useTheme } from "../ThemeContextFoler/useTheme";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -58,7 +59,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       return localStorage.getItem("currentChatRoomId") || null;
     }
   );
-
+const {isDarkMode} = useTheme();
   // const navigate = useNavigate();
   const { connection } = useSignal();
   const { user } = useAuth();
@@ -666,6 +667,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
   return (
     <ChatRoomContext.Provider
       value={{
+        isDarkMode,
         getPrivateChatRoom,
         fetchChatRoomsWhereUserIsNotIn,
         chatRoomsThatUserIsNotIn,

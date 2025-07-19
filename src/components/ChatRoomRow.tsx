@@ -138,7 +138,6 @@ export default function ChatRoomRow({
       setSwipeX(0);
     },
     trackMouse: true, // allow mouse drag for testing
-    // preventDefaultTouchmoveEvent: true, // Prevent default touch behavior
     trackTouch: true, // Ensure touch tracking is enabled
     delta: 10, // Minimum distance for swipe
     swipeDuration: 500, // Maximum time for swipe
@@ -154,11 +153,16 @@ export default function ChatRoomRow({
   }, [swiping, swipeAction]);
   // console.log(ACTION_WIDTH)
 
-  const messages = messagesByChatRoomId[room.chatRoomId] || [];
-  const lastMessage =
-    messages.length > 0 ? messages[messages.length - 1] : null;
-  console.log(lastMessage);
-  console.log(room.name);
+  // Sort messages by timestamp before picking the last one
+  const messages = (messagesByChatRoomId[room.chatRoomId] || []).slice();
+  messages.sort((a, b) => {
+    const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return aTime - bTime;
+  });
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  // console.log(lastMessage);
+  // console.log(room.name);
   const getChatRoomName = (room: ChatRoomType) => {
     if (room.isGroup) {
       const name = room.name.trim();
@@ -361,9 +365,7 @@ export default function ChatRoomRow({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
             <span
-              className={`font-semibold truncate ${
-                compactView ? "text-sm" : ""
-              }`}
+              className={`font-semibold truncate ${compactView ? "text-sm" : ""}`}
               style={{
                 color: "var(--color-text)",
                 fontFamily: "var(--font-primary)",
@@ -373,31 +375,33 @@ export default function ChatRoomRow({
             >
               {chatRoomName}
             </span>
-            <div className="flex items-center gap-2 relative">
-              {/* Only show menu icon on desktop */}
-              {!isMobileView && (
-                <button
-                  onClick={handleMenuToggle}
-                  className="p-1 rounded-full hover:bg-[var(--color-primary)] hover:bg-opacity-10 transition-colors"
-                  title={
-                    openMenu === room.chatRoomId ? "Close menu" : "More options"
-                  }
-                >
-                  {openMenu === room.chatRoomId ? (
-                    <FiX className="w-5 h-5" />
-                  ) : (
-                    <FiMoreVertical className="w-5 h-5" />
-                  )}
-                </button>
-              )}
-            </div>
+            {/* Timestamp next to chat room name */}
+            <span
+              className="ml-2 text-xs whitespace-nowrap flex-shrink-0"
+              style={{ color: "var(--color-text)" }}
+            >
+              {lastMessage && formatLastMessageTime(lastMessage.timestamp)
+                ? (() => {
+                    const formattedTime = formatLastMessageTime(
+                      lastMessage.timestamp
+                    );
+                    if (formattedTime.includes("\n")) {
+                      const [day, time] = formattedTime.split("\n");
+                      return (
+                        <span>
+                          {day} <span className="opacity-70 text-[10px]">{time}</span>
+                        </span>
+                      );
+                    }
+                    return formattedTime;
+                  })()
+                : ""}
+            </span>
           </div>
-          {/* Last message and timestamp row (same row) */}
-          <div className="flex items-center w-full min-w-0">
+          {/* Last message and menu icon row */}
+          <div className="flex items-center justify-between w-full">
             <p
-              className={`truncate flex-1 min-w-0 ${
-                compactView ? "text-xs" : "text-sm"
-              }`}
+              className={`truncate flex-1 min-w-0 ${compactView ? "text-xs" : "text-sm"}`}
               style={{
                 color: "var(--color-chat-text)",
                 overflow: "hidden",
@@ -443,34 +447,27 @@ export default function ChatRoomRow({
                   </span>
                 )
               ) : (
-                <span style={{ color: "var(--color-secondary)" }}>
+                <span style={{ color: "var(--color-primary)", fontWeight: 600 }}>
                   No messages yet
                 </span>
               )}
             </p>
-            {/* Timestamp (now always at the end of the row) */}
-            <span
-              className="ml-2 text-xs whitespace-nowrap flex-shrink-0"
-              style={{ color: "var(--color-text)" }}
-            >
-              {lastMessage && formatLastMessageTime(lastMessage.timestamp)
-                ? (() => {
-                    const formattedTime = formatLastMessageTime(
-                      lastMessage.timestamp
-                    );
-                    if (formattedTime.includes("\n")) {
-                      const [day, time] = formattedTime.split("\n");
-                      return (
-                        <span>
-                          {day}{" "}
-                          <span className="opacity-70 text-[10px]">{time}</span>
-                        </span>
-                      );
-                    }
-                    return formattedTime;
-                  })()
-                : ""}
-            </span>
+            {/* Menu icon at the end of the last message row */}
+            {!isMobileView && messages.length > 0 && (
+              <button
+                onClick={handleMenuToggle}
+                className="p-1 rounded-full hover:bg-[var(--color-primary)] hover:bg-opacity-10 transition-colors ml-2"
+                title={
+                  openMenu === room.chatRoomId ? "Close menu" : "More options"
+                }
+              >
+                {openMenu === room.chatRoomId ? (
+                  <FiX className="w-5 h-5" />
+                ) : (
+                  <FiMoreVertical className="w-5 h-5" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

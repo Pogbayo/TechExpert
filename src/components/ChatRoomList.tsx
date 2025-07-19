@@ -22,7 +22,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 // import { formatLastMessageTime } from "../utils/dateUtils";
 import ChatRoomRow from "./ChatRoomRow";
-import { FiLogOut, FiPlus, FiSearch } from "react-icons/fi";
+import { FiLogOut, FiPlus, FiSearch,FiX } from "react-icons/fi";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
@@ -45,7 +45,7 @@ function getLastMessage(messages: Message[] | null | undefined) {
 export default function ChatRoomList({
   onSelectChatRoom,
   toggleDarkMode,
-  // isDarkMode,
+  isDarkMode,
   isMobileView,
   setShowChatWindow,
 }: ChatRoomListProps) {
@@ -241,11 +241,11 @@ export default function ChatRoomList({
   // const onlineUsers = useOnlineUsers();
   const navigate = useNavigate();
 
-  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  const [isDarkModeState, setIsDarkModeState] = useState(() => document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
+      setIsDarkModeState(document.documentElement.classList.contains('dark'));
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
@@ -357,6 +357,7 @@ export default function ChatRoomList({
             }}
             setShowChatWindow={setShowChatWindow}
             isMobileView={isMobileView}
+            isDarkMode={isDarkMode}
           />
         ) : (
           <ul className="space-y-3">
@@ -396,11 +397,11 @@ export default function ChatRoomList({
           setPlus((prev) => !prev);
         }}
         className={`absolute bottom-6 right-6 z-20 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all text-3xl
-          ${isDarkMode ? 'bg-white text-blue-600 hover:bg-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          ${isDarkModeState ? 'bg-white text-blue-600 hover:bg-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         title={plus ? "Add user or join group" : "Back"}
         style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
       >
-        <FiPlus />
+        {plus ? <FiPlus /> : <FiX />}
       </button>
     </div>
   );

@@ -10,10 +10,12 @@ export default function ChatRooms({
   onUserOrGroupSelected,
   setShowChatWindow,
   isMobileView,
+  isDarkMode,
 }: {
   onUserOrGroupSelected?: (chatRoomId: string) => void;
   setShowChatWindow?: (val: boolean) => void;
   isMobileView?: boolean;
+  isDarkMode:boolean;
 }) {
   // const navigate = useNavigate();
 
@@ -155,7 +157,13 @@ export default function ChatRooms({
             {activeTab === "users" ? "Loading users..." : "Loading groups..."}
           </div>
         ) : activeTab === "users" ? (
-          (nonMutualFriends?.length ?? 0) > 0 ? (
+          Array.isArray(nonMutualFriends) && nonMutualFriends.length === 0 ? (
+            <div
+            style={{ color: isDarkMode ? "lightblue" : "red"}} 
+            className="text-center mt-20  bg-gray-100 dark:bg-transparent rounded px-4 py-2 inline-block mx-auto">
+              There are no non-mutual friends to add.
+            </div>
+          ) : (
             <ul className="space-y-3">
               {nonMutualFriends?.map((u) => (
                 <li
@@ -167,7 +175,7 @@ export default function ChatRooms({
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-[var(--color-text)] text-base truncate">
+                    <span className="font-semibold text-base truncate dark:text-white text-[var(--color-text)]">
                       {u.username}
                     </span>
                     {/* <p className="text-[var(--color-chat-text)] text-sm italic truncate">
@@ -177,10 +185,6 @@ export default function ChatRooms({
                 </li>
               ))}
             </ul>
-          ) : (
-            <div className="text-center text-[var(--color-secondary)] mt-20">
-              There are no non-mutual friends to add.
-            </div>
           )
         ) : (chatRoomsThatUserIsNotIn ?? []).length > 0 ? (
           <ul className="space-y-3">
@@ -191,10 +195,10 @@ export default function ChatRooms({
                     {group.name?.charAt(0).toUpperCase() || "G"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-[var(--color-text)] text-base truncate dark:text-gray-100">
+                    <span className="font-semibold text-base truncate dark:text-white text-[var(--color-text)]">
                       {group.name || "Unnamed Group"}
                     </span>
-                    <p className="text-[var(--color-chat-text)] text-sm italic truncate dark:text-gray-300">
+                    <p className="text-sm italic truncate dark:text-white text-[var(--color-chat-text)]">
                       {group.lastMessageContent
                         ? `${group.lastMessageContent.slice(0, 40)}...`
                         : "No messages yet"}
@@ -205,7 +209,8 @@ export default function ChatRooms({
             ))}
           </ul>
         ) : (
-          <div className="text-center text-[var(--color-input-text)] mt-20">
+          <div className="text-center mt-20 dark:text-white text-red-100"
+          style={{color:"red"}}>
             There are no groups available to join.
           </div>
         )}
