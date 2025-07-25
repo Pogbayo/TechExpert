@@ -16,12 +16,8 @@ export function formatLastMessageTime(timestamp: string | number | Date | null |
     // If it's in seconds, convert to ms
     date = new Date(timestamp > 1e12 ? timestamp : timestamp * 1000);
   } else if (typeof timestamp === "string") {
-    // Try ISO, then fallback to parse
+    // Parse ISO string directly
     date = new Date(timestamp);
-    if (isNaN(date.getTime())) {
-      // Try replacing space with T and adding Z
-      date = new Date(timestamp.replace(" ", "T") + "Z");
-    }
   } else {
     date = new Date(timestamp);
   }
@@ -36,6 +32,7 @@ export function formatLastMessageTime(timestamp: string | number | Date | null |
   } else if (isYesterday(date)) {
     // Yesterday - show "Yesterday with time on new line
     return `Yesterday\n${format(date, "h:mm a")}`;
+    // return "Yesterday";
   } else {
     // Older - show short date (MM/dd/yy)
     return format(date, "MM/dd/yy");
@@ -51,7 +48,7 @@ export function formatMessageTime(timestamp: string | Date | null | undefined): 
 
   try {
     const date = typeof timestamp === "string" 
-      ? new Date(timestamp.replace(" ", "T") + "Z")
+      ? new Date(timestamp)
       : new Date(timestamp);
 
     if (isNaN(date.getTime())) {

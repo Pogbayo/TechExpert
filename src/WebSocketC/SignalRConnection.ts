@@ -6,7 +6,7 @@ export const createConnection = (userId: string) => {
   if (connection) return connection;
 
   const baseUrl = "https://spagchat.runasp.net";
-
+// const baseUrl = "http://localhost:5154"
   const hubUrl = `${baseUrl}/chathub?userId=${userId}`;
 
   connection = new signalR.HubConnectionBuilder()

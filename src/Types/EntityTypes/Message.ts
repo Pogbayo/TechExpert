@@ -7,5 +7,8 @@ export type Message = {
   sender: ApplicationUser | null;
   content: string;            
   timestamp?: string;   
+  isEdited?: boolean;
+  isDeleted?:boolean;
+  readBy?: string[];
 };
 

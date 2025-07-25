@@ -2,43 +2,24 @@
 import { useRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  FiMoreVertical,
-  FiX,
+  // FiMoreVertical,
+  // FiX,
   FiTrash,
   FiArchive,
   FiPaperclip,
 } from "react-icons/fi";
 import { formatLastMessageTime } from "../utils/dateUtils";
 import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
-import type { Message } from "../Types/EntityTypes/Message";
 import { useSwipeable } from "react-swipeable";
 import { useEffect } from "react";
-import type { ApplicationUser } from "../Types/EntityTypes/ApplicationUser";
-
-interface ChatRoomRowProps {
-  room: ChatRoomType;
-  index: number;
-  user: ApplicationUser | null;
-  messagesByChatRoomId: { [chatRoomId: string]: Message[] | null };
-  openMenu: string | null;
-  setOpenMenu: (id: string | null) => void;
-  showAbove: { [id: string]: boolean };
-  setShowAbove: React.Dispatch<React.SetStateAction<{ [id: string]: boolean }>>;
-  pinChatRoom: (id: string) => void;
-  unpinChatRoom: (id: string) => void;
-  handleArchive: (e: React.MouseEvent) => void;
-  handleDelete: (e: React.MouseEvent) => void;
-  onSelectChatRoom?: (id: string) => void;
-  compactView: boolean;
-  onlineUsers: string[];
-  setCurrentChatRoomId: (id: string) => void;
-  isMobileView: boolean;
-}
+import type { ChatRoomRowProps } from "../Types/ContextTypes/contextType";
+// import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 
 export default function ChatRoomRow({
   room,
   //   index,
   user,
+  unreadCount,
   messagesByChatRoomId,
   openMenu,
   setOpenMenu,
@@ -51,7 +32,7 @@ export default function ChatRoomRow({
   onSelectChatRoom,
   compactView,
   onlineUsers,
-  setCurrentChatRoomId,
+  // setCurrentChatRoomId,
   isMobileView,
 }: ChatRoomRowProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
@@ -67,7 +48,11 @@ export default function ChatRoomRow({
   const [swiping, setSwiping] = useState(false);
   const [swipeX, setSwipeX] = useState(0);
   const [_ACTION_WIDTH, setACTION_WIDTH] = useState(70); // Default for desktop
-
+  // const isDarkMode =
+  //   typeof window !== "undefined" &&
+  //   window.matchMedia &&
+  //   window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // const {setCurrentChatRoomId} = useChatRoom()
   useLayoutEffect(() => {
     if (openMenu === room.chatRoomId && rowRef.current) {
       const rect = rowRef.current.getBoundingClientRect();
@@ -113,7 +98,6 @@ export default function ChatRoomRow({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobileView, room.chatRoomId, setShowAbove, setMenuPos]);
-
   const handlers = useSwipeable({
     onSwiping: (e) => {
       if (!isMobileView) return;
@@ -160,7 +144,8 @@ export default function ChatRoomRow({
     const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
     return aTime - bTime;
   });
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastMessage =
+    messages.length > 0 ? messages[messages.length - 1] : null;
   // console.log(lastMessage);
   // console.log(room.name);
   const getChatRoomName = (room: ChatRoomType) => {
@@ -177,16 +162,19 @@ export default function ChatRoomRow({
 
   const handleClick = () => {
     if (!room?.chatRoomId) return;
-    setCurrentChatRoomId(room.chatRoomId);
+    // setCurrentChatRoomId(room.chatRoomId);
     onSelectChatRoom?.(room.chatRoomId);
   };
-  const logMesssagesByChatRoomId = (room: ChatRoomType) => {
-    console.log(messagesByChatRoomId[room.chatRoomId]);
-  };
-  const handleMenuToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOpenMenu(openMenu === room.chatRoomId ? null : room.chatRoomId);
-  };
+
+  // const logMesssagesByChatRoomId = (room: ChatRoomType) => {
+  //   console.log(messagesByChatRoomId[room.chatRoomId]);
+  // };
+
+  // const handleMenuToggle = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   setOpenMenu(openMenu === room.chatRoomId ? null : room.chatRoomId);
+  // };
+
   const handlePin = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpenMenu(null);
@@ -198,10 +186,7 @@ export default function ChatRoomRow({
   };
 
   return (
-    <div
-      className="relative mb-3"
-      onClick={() => logMesssagesByChatRoomId(room)}
-    >
+    <div className="relative">
       {/* Swipe actions for mobile (z-0, behind row) */}
       {isMobileView && (
         <>
@@ -294,13 +279,9 @@ export default function ChatRoomRow({
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") handleClick();
         }}
-        className={`relative flex items-start gap-4 p-[var(--space-3)] rounded-[var(--radius-lg)] bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200
+        className={`relative flex items-start gap-4 px-[var(--space-3)] py-2 cursor-pointer transition-transform duration-200
           ${room.pinned ? "border-l-4 border-[var(--color-primary)]" : ""}
-          ${
-            openMenu === room.chatRoomId
-              ? "scale-100"
-              : "hover:scale-[1.01] active:scale-[0.98]"
-          }
+          ${openMenu === room.chatRoomId ? "scale-100" : "active:scale-[0.98]"}
           hover:bg-[var(--color-chat-bg)]
           select-none z-10
         `}
@@ -328,7 +309,7 @@ export default function ChatRoomRow({
         {room.isGroup ? (
           <div
             className={`${
-              compactView ? "w-10 h-10" : "w-14 h-14"
+              compactView ? "w-9 h-9" : "w-12 h-12"
             } rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden`}
           >
             <svg
@@ -351,7 +332,7 @@ export default function ChatRoomRow({
               )}`}
               alt="user avatar"
               className={`${
-                compactView ? "w-10 h-10" : "w-14 h-14"
+                compactView ? "w-9 h-9" : "w-12 h-12"
               } rounded-full border-2 border-white bg-gray-200 object-cover`}
             />
             {(() => {
@@ -365,31 +346,42 @@ export default function ChatRoomRow({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
             <span
-              className={`font-semibold truncate ${compactView ? "text-sm" : ""}`}
+              className={`font-bold truncate ${
+                compactView ? "text-xs" : "text-sm"
+              }`}
               style={{
                 color: "var(--color-text)",
                 fontFamily: "var(--font-primary)",
-                fontSize: compactView ? "0.875rem" : "var(--font-size-base)",
               }}
               title={chatRoomName}
             >
               {chatRoomName}
             </span>
-            {/* Timestamp next to chat room name */}
             <span
-              className="ml-2 text-xs whitespace-nowrap flex-shrink-0"
-              style={{ color: "var(--color-text)" }}
+              className="ml-2 text-[10px] whitespace-nowrap flex-shrink-0"
+              style={{
+                color: "grey",
+                // unreadCount && unreadCount[room.chatRoomId] > 0
+                //   ? isDarkMode
+                //     ? "#166534"
+                //     : "#22c55e"
+                //   : "var(--color-text)",
+              }}
             >
               {lastMessage && formatLastMessageTime(lastMessage.timestamp)
                 ? (() => {
                     const formattedTime = formatLastMessageTime(
                       lastMessage.timestamp
                     );
+                    if (formattedTime === "Yesterday") {
+                      return "Yesterday";
+                    }
                     if (formattedTime.includes("\n")) {
                       const [day, time] = formattedTime.split("\n");
                       return (
                         <span>
-                          {day} <span className="opacity-70 text-[10px]">{time}</span>
+                          {day}
+                          <span className="opacity-70 text-[10px]">{time}</span>
                         </span>
                       );
                     }
@@ -398,12 +390,14 @@ export default function ChatRoomRow({
                 : ""}
             </span>
           </div>
-          {/* Last message and menu icon row */}
-          <div className="flex items-center justify-between w-full">
+          {/* Sender/message and unread badge row */}
+          <div className="flex items-center justify-between w-full mt-0.5">
             <p
-              className={`truncate flex-1 min-w-0 ${compactView ? "text-xs" : "text-sm"}`}
+              className={`truncate flex-1 min-w-0 ${
+                compactView ? "text-[10px]" : "text-xs"
+              }`}
               style={{
-                color: "var(--color-chat-text)",
+                color: "grey",
                 overflow: "hidden",
                 whiteSpace: "nowrap",
               }}
@@ -414,17 +408,19 @@ export default function ChatRoomRow({
                     <span
                       className="font-medium"
                       style={{
-                        color:
-                          lastMessage.sender?.id === user?.id
-                            ? "var(--color-primary)"
-                            : "var(--color-text)",
+                        color: "grey",
+                        // lastMessage.sender?.id === user?.id
+                        //   ? "var(--color-primary)"
+                        //   : (unreadCount && unreadCount[room.chatRoomId] > 0
+                        //       ? '#166534'
+                        //       : (isDarkMode ? '#fff' : 'var(--color-text)')),
                       }}
                     >
                       {lastMessage.sender?.id === user?.id
                         ? "You"
                         : lastMessage.sender?.username}
                     </span>
-                    <span style={{ color: "var(--color-input-text)" }}>
+                    <span style={{ color: "grey" }}>
                       :{" "}
                       {(() => {
                         const maxLen = compactView ? 30 : 40;
@@ -436,7 +432,14 @@ export default function ChatRoomRow({
                     </span>
                   </>
                 ) : (
-                  <span style={{ color: "var(--color-chat-text)" }}>
+                  <span
+                    style={{
+                      color: "grey",
+                      // unreadCount && unreadCount[room.chatRoomId] > 0
+                      //   ? "#166534"
+                      //   : "grey",
+                    }}
+                  >
                     {(() => {
                       const maxLen = compactView ? 30 : 40;
                       const content = lastMessage.content || "";
@@ -447,26 +450,22 @@ export default function ChatRoomRow({
                   </span>
                 )
               ) : (
-                <span style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                  No messages yet
+                <span
+                  style={{
+                    color: "grey",
+                    fontWeight: 400,
+                  }}
+                >
+                  {/* send a message to start a conversation */}
+                  ...
                 </span>
               )}
             </p>
-            {/* Menu icon at the end of the last message row */}
-            {!isMobileView && messages.length > 0 && (
-              <button
-                onClick={handleMenuToggle}
-                className="p-1 rounded-full hover:bg-[var(--color-primary)] hover:bg-opacity-10 transition-colors ml-2"
-                title={
-                  openMenu === room.chatRoomId ? "Close menu" : "More options"
-                }
-              >
-                {openMenu === room.chatRoomId ? (
-                  <FiX className="w-5 h-5" />
-                ) : (
-                  <FiMoreVertical className="w-5 h-5" />
-                )}
-              </button>
+            {/* Unread count badge at the end of the sender/message row */}
+            {unreadCount && unreadCount[room.chatRoomId] > 0 && (
+              <span className="inline-block rounded-full bg-green-700 text-white text-[10px] font-bold px-2 py-1 min-w-[22px] text-center ml-2">
+                {unreadCount[room.chatRoomId]}
+              </span>
             )}
           </div>
         </div>

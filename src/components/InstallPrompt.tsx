@@ -29,14 +29,21 @@ const InstallPrompt = () => {
     return () => window.removeEventListener("popstate", handleRouteChange);
   }, []);
 
+  // Add a handler to dismiss the prompt and persist the choice
+  const handleDismiss = () => {
+    setIsVisible(false);
+    localStorage.setItem("pwa-dismissed", "true");
+  };
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Only show if not already installed before
+      // Only show if not already installed or dismissed before
       const alreadyInstalled = localStorage.getItem("pwa-installed");
-      if (!alreadyInstalled) {
+      const dismissed = localStorage.getItem("pwa-dismissed");
+      if (!alreadyInstalled && !dismissed) {
         setIsVisible(true);
       }
     };
@@ -76,6 +83,14 @@ const InstallPrompt = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black bg-opacity-40" />
       <div className="relative bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl shadow-2xl flex flex-col md:flex-row items-center justify-between p-6 gap-4 border-2 border-blue-300 max-w-lg w-full mx-4">
+        {/* X button to dismiss */}
+        <button
+          onClick={handleDismiss}
+          className="absolute top-2 right-2 text-white text-2xl font-bold hover:text-blue-200 focus:outline-none"
+          aria-label="Dismiss install prompt"
+        >
+          ×
+        </button>
         <div className="flex-1 text-center md:text-left">
           <div className="font-bold text-lg mb-1">
             Install Spag Chat for the Best Experience!

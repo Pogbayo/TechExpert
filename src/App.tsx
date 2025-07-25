@@ -5,8 +5,8 @@ import PrivateRoute from "./components/PrivateRoute";
 import { Toaster } from "react-hot-toast";
 import ProfilePage from "./components/ProfilePage";
 import InnerProviders from "./components/InnerProviders";
-import { useAuth } from "./context/AuthContextFolder/useAuth";
 import InstallPrompt from "./components/InstallPrompt";
+import { useAuth } from "./context/AuthContextFolder/useAuth";
 
 export default function App() {
   const { user, isAuthChecked } = useAuth();
@@ -36,21 +36,29 @@ export default function App() {
         <Route
           path="/chat"
           element={
-            <InnerProviders userId={user?.id || ""}>
-              <PrivateRoute>
-                <ChatLayout />
-              </PrivateRoute>
-            </InnerProviders>
+            user?.id ? (
+              <InnerProviders userId={user.id}>
+                <PrivateRoute>
+                  <ChatLayout />
+                </PrivateRoute>
+              </InnerProviders>
+            ) : (
+              <Navigate to="/auth" />
+            )
           }
         />
         <Route
           path="/profile"
           element={
-            <InnerProviders userId={user?.id || ""}>
-              <PrivateRoute>
-                <ProfilePage />
-              </PrivateRoute>
-            </InnerProviders>
+            user?.id ? (
+              <InnerProviders userId={user.id}>
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              </InnerProviders>
+            ) : (
+              <Navigate to="/auth" />
+            )
           }
         />
         <Route path="*" element={<Navigate to={user ? "/chat" : "/auth"} />} />

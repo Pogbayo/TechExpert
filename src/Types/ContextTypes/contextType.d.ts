@@ -59,17 +59,41 @@ export type ChatRoomUserContextType = {
   chatRoomUsers: ApplicationUser[]
 }
 
+interface ChatRoomRowProps {
+  room: ChatRoomType;
+  unreadCount: Record<string,number>
+  index: number;
+  user: ApplicationUser | null;
+  messagesByChatRoomId: { [chatRoomId: string]: Message[] | null };
+  openMenu: string | null;
+  setOpenMenu: (id: string | null) => void;
+  showAbove: { [id: string]: boolean };
+  setShowAbove: React.Dispatch<React.SetStateAction<{ [id: string]: boolean }>>;
+  pinChatRoom: (id: string) => void;
+  unpinChatRoom: (id: string) => void;
+  handleArchive: (e: React.MouseEvent) => void;
+  handleDelete: (e: React.MouseEvent) => void;
+  onSelectChatRoom?: (id: string) => void;
+  compactView: boolean;
+  onlineUsers: string[];
+  setCurrentChatRoomId: (id: string) => void;
+  isMobileView: boolean;
+}
+
 export type ChatRoomContextType = {
   chatRoom: ChatRoomType | null;
   chatRooms: ChatRoomType[];
-  // searchedChatRoom:ChatRoomType[];
+  unreadCount: Record<string,number>;
+  setUnreadCount: React.Dispatch<React.SetStateAction<Record<string,number>>>;
   chatRoomsThatUserIsNotIn:chatRooms[] | null;
   lastAction: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null;
   setLastAction: (action: 'user-added' | 'user-removed' | 'chatroom-created' | 'chatroom-deleted' | 'chatroom-updated' | null) => void;
   isLoading: boolean;
   error: string | null;
   showCreateModal:boolean;
+  getUnreadMessagesCount:(userId:string) => Promise<void>
   setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>; 
+  markAsRead: (messageIds:string[],userId:string) => Promise<ApiResponse<boolean> | undefined>
   openChatRoom:(chatRoomId:string) => Promise<void>;
   createChatRoom: (name: string, isGroup: boolean, memberIds: string[]) => Promise<ChatRoomType | null>;
   getChatRoomsRelatedToUser: (userId: string) => Promise<void>;

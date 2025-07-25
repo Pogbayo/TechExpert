@@ -6,36 +6,30 @@ import React, {
   useState,
 } from "react";
 import axiosInstance from "../../IAxios/axiosInstance";
-import { useAuth } from "../AuthContextFolder/useAuth";
 import type { ProfileContextType } from "../../Types/ContextTypes/contextType";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
-export const ProfileProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const { user, setUser } = useAuth();
+export function ProfileProvider({ children, userId }: { children: React.ReactNode, userId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { connection } = useSignal();
   const updateUsername = useCallback(
     async (newUsername: string) => {
-      if (!user) return false;
+      if (!userId) return false;
       setLoading(true);
       setError("");
       try {
         const res = await axiosInstance.put(
           "/applicationuser/update-username",
           {
-            userId: user.id,
+            userId,
             newUsername,
           }
         );
         if (res.data && res.data.success) {
-          setUser({ ...user, username: newUsername });
+          // setUser({ ...user, username: newUsername }); // This line was removed as per the edit hint
           setLoading(false);
           return true;
         } else {
@@ -50,21 +44,21 @@ export const ProfileProvider = ({
         return false;
       }
     },
-    [setUser, user]
+    [userId] // Changed from [setUser, user] to [userId]
   );
 
   const updatePassword = async (
     currentPassword: string,
     newPassword: string
   ) => {
-    if (!user) return false;
+    if (!userId) return false;
     setLoading(true);
     setError("");
     try {
       const res = await axiosInstance.put(
         "/api/applicationuser/update-password",
         {
-          userId: user.id,
+          userId,
           currentPassword,
           newPassword,
         }

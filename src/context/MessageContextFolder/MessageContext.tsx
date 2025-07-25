@@ -94,6 +94,91 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // async function sendMessage(
+  //   chatRoomId: string,
+  //   senderId: string,
+  //   content: string
+  // ): Promise<void> {
+  //   setLoading(true);
+  //   setError("");
+  //   const tempMessageId = Date.now().toString();
+  //   const clientMessageId = `${senderId}-${Date.now()}`;
+  //   const minimalUser = { id: senderId, username: "Sending...", dpUrl: null, email: undefined };
+  //   const newMessage = {
+  //     messageId: tempMessageId,
+  //     clientMessageId,
+  //     chatRoomId,
+  //     sender: minimalUser,
+  //     content,
+  //     timestamp: new Date().toISOString(),
+  //   };
+  //   setmessagesByChatRoomId((prev) => {
+  //     const existing = prev[chatRoomId] || [];
+  //     return { ...prev, [chatRoomId]: [...existing, newMessage] };
+  //   });
+  
+  //   try {
+  //     const requestPayload = {
+  //       ChatRoomId: chatRoomId,
+  //       SenderId: senderId,
+  //       Content: content,
+  //     };
+
+  //     const response = await axiosInstance.post<ApiResponse<Message>>(
+  //       `/message/send-message`,
+  //       requestPayload,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+
+  //     if (response.data.success && response.data.data) {
+  //       setmessagesByChatRoomId((prev) => {
+  //         const roomId = chatRoomId;
+  //         const existingMessages = prev[roomId] || [];
+  //         // Avoid duplicates if SignalR also adds it
+  //         const alreadyExists = existingMessages.some(
+  //           (msg) => msg.messageId === response.data.data!.messageId
+  //         );
+  //         if (alreadyExists) return prev;
+  //         return {
+  //           ...prev,
+  //           [roomId]: [...existingMessages, response.data.data!],
+  //         };
+  //       });
+  //       console.log(
+  //         "Message was sent and this is the payload",
+  //         response.data.data
+  //       );
+  //       setIsMessageSent(true);
+  //     } else {
+  //       setError(response.data.message || "Failed to send message.");
+  //       toast.error("Failed to send message..");
+  //     }
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       const errorMessage =
+  //         err.response?.data?.message ||
+  //         err.response?.data?.error ||
+  //         err.message ||
+  //         "An error occurred while sending message.";
+
+  //       setError(errorMessage);
+  //       toast.error(errorMessage);
+  //     } else {
+  //       const errorMessage = "An unexpected error occurred.";
+  //       setError(errorMessage);
+  //       toast.error(errorMessage);
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //     setIsMessageSent(false);
+  //   }
+  // }
+
   async function sendMessage(
     chatRoomId: string,
     senderId: string,
@@ -113,56 +198,54 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         `/message/send-message`,
         requestPayload,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.success && response.data.data) {
-        setmessagesByChatRoomId((prev) => {
-          const roomId = chatRoomId;
-          const existingMessages = prev[roomId] || [];
-          // Avoid duplicates if SignalR also adds it
-          const alreadyExists = existingMessages.some(
-            (msg) => msg.messageId === response.data.data!.messageId
-          );
-          if (alreadyExists) return prev;
-          return {
-            ...prev,
-            [roomId]: [...existingMessages, response.data.data!],
-          };
-        });
-        setIsMessageSent(true);
-      } else {
-        setError(response.data.message || "Failed to send message.");
-        toast.error("Failed to send message..");
+          headers: {  Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          "Content-Type": "application/json",
+        },
       }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const errorMessage =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          err.message ||
-          "An error occurred while sending message.";
+    );
 
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } else {
-        const errorMessage = "An unexpected error occurred.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-      }
-    } finally {
+    if (response.data.success && response.data.data) {
+      setmessagesByChatRoomId((prev) => {
+        const roomId = chatRoomId;
+        const existingMessages = prev[roomId] || [];
+        // Avoid duplicates if SignalR also adds it
+        const alreadyExists = existingMessages.some(
+          (msg) => msg.messageId === response.data.data!.messageId
+        );
+        if (alreadyExists) return prev;
+        return {
+          ...prev,
+          [roomId]: [...existingMessages, response.data.data!],
+        };
+      });
+      setIsMessageSent(true);
+    } else {
+      setError(response.data.message || "Failed to send message.");
+      toast.error("Failed to send message..");
+    }
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "An error occurred while sending message.";
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } else {
+      const errorMessage = "An unexpected error occurred.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } } finally {
       setLoading(false);
       setIsMessageSent(false);
     }
   }
-
   useEffect(() => {
     if (connection) {
       connection.on("ReceiveMessage", (newMessage: Message) => {
+        console.log("Received message:", newMessage);
         setmessagesByChatRoomId((prev) => {
           const roomId = newMessage.chatRoomId;
           const existingMessages = prev[roomId] || [];

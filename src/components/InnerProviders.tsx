@@ -7,6 +7,7 @@ import { UserProvider } from "../context/UserContextFolder/UserContext";
 import { OnlineUsersProvider } from "../context/OnlineUsersContext";
 import { ProfileProvider } from "../context/ProfileContextFolder/ProfileContext";
 import { ThemeProvider } from "../context/ThemeContextFoler/ThemeContext";
+import { AuthProvider } from "../context/AuthContextFolder/AuthContext";
 interface InnerProvidersProps {
   children: React.ReactNode;
   userId: string;
@@ -17,22 +18,40 @@ export default function InnerProviders({
   userId,
 }: InnerProvidersProps) {
   return (
-    <ThemeProvider>
-      <SignalProvider userId={userId}>
-        <MessageProvider>
-          <ChatRoomProvider>
-            <UserProvider>
-              <ChatRoomUserProvider>
-                <OnlineUsersProvider>
-                  <ProfileProvider>
-                    {children}
-                  </ProfileProvider>
-                </OnlineUsersProvider>
-              </ChatRoomUserProvider>
-            </UserProvider>
-          </ChatRoomProvider>
-        </MessageProvider>
-      </SignalProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        {userId ? (
+          <SignalProvider userId={userId}>
+            <MessageProvider>
+              <ChatRoomProvider userId={userId}>
+                <UserProvider>
+                  <ChatRoomUserProvider>
+                    <OnlineUsersProvider>
+                      <ProfileProvider userId={userId}>
+                        {children}
+                      </ProfileProvider>
+                    </OnlineUsersProvider>
+                  </ChatRoomUserProvider>
+                </UserProvider>
+              </ChatRoomProvider>
+            </MessageProvider>
+          </SignalProvider>
+        ) : (
+          <MessageProvider>
+            <ChatRoomProvider userId={userId}>
+              <UserProvider>
+                <ChatRoomUserProvider>
+                  <OnlineUsersProvider>
+                    <ProfileProvider userId={userId}>
+                      {children}
+                    </ProfileProvider>
+                  </OnlineUsersProvider>
+                </ChatRoomUserProvider>
+              </UserProvider>
+            </ChatRoomProvider>
+          </MessageProvider>
+        )}
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

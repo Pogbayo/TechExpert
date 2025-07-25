@@ -12,10 +12,11 @@ import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
 import axiosInstance from "../../IAxios/axiosInstance";
 import toast from "react-hot-toast";
-import { useAuth } from "../AuthContextFolder/useAuth";
+// import { useAuth } from "../AuthContextFolder/useAuth";
 import * as signalR from "@microsoft/signalr";
 import { useMessage } from "../MessageContextFolder/useMessage";
 import { useTheme } from "../ThemeContextFoler/useTheme";
+import type { Message } from "../../Types/EntityTypes/Message";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
@@ -25,7 +26,7 @@ export const ChatRoomContext = createContext<ChatRoomContextType | undefined>(
 const CHAT_ROOM_STORAGE_KEY = "chatRoom";
 const CHAT_ROOMS_STORAGE_KEY = "chatRooms";
 
-export function ChatRoomProvider({ children }: { children: ReactNode }) {
+export function ChatRoomProvider({ children, userId }: { children: ReactNode, userId: string }) {
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(() => {
     const stored = localStorage.getItem(CHAT_ROOM_STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
@@ -36,7 +37,6 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Handle both old format (array) and new format (object with timestamp)
         if (Array.isArray(parsed)) {
           return parsed;
         } else if (parsed.chatRooms && Array.isArray(parsed.chatRooms)) {
@@ -48,6 +48,7 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
     }
     return [];
   });
+  
   // console.log(chatRooms.length);
   const [chatRoomsThatUserIsNotIn, setChatRoomsThatUserIsNotIn] = useState<
     ChatRoomType[] | null
@@ -59,10 +60,10 @@ export function ChatRoomProvider({ children }: { children: ReactNode }) {
       return localStorage.getItem("currentChatRoomId") || null;
     }
   );
-const {isDarkMode} = useTheme();
+  const { isDarkMode } = useTheme();
   // const navigate = useNavigate();
   const { connection } = useSignal();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const { setCurrentChatRoomId: setMessageContextChatRoomId } = useMessage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,19 @@ const {isDarkMode} = useTheme();
     | "chatroom-updated"
     | null
   >(null);
+
+  const UNREAD_COUNT_STORAGE_KEY = "unreadCount";
+
+  const [unreadCount, setUnreadCount] = useState<Record<string, number>>(() => {
+    const stored = localStorage.getItem(UNREAD_COUNT_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem(UNREAD_COUNT_STORAGE_KEY, JSON.stringify(unreadCount));
+  }, [unreadCount]);
+
+
 
   // Wrapper function to sync both contexts
   const setCurrentChatRoomIdWrapper = useCallback(
@@ -99,17 +113,18 @@ const {isDarkMode} = useTheme();
     }
   }, [chatRoom]);
 
+  
   useEffect(() => {
     const dataWithTimestamp = {
       chatRooms,
       timestamp: new Date().toISOString(),
-      userId: user?.id,
+      userId: userId,
     };
     localStorage.setItem(
       CHAT_ROOMS_STORAGE_KEY,
       JSON.stringify(dataWithTimestamp)
     );
-  }, [chatRooms, user?.id]);
+  }, [chatRooms, userId]);
 
   useEffect(() => {
     if (currentChatRoomId) {
@@ -118,6 +133,45 @@ const {isDarkMode} = useTheme();
       localStorage.removeItem("currentChatRoomId");
     }
   }, [currentChatRoomId]);
+
+
+  const getUnreadMessagesCount = useCallback(async (userId: string) => {
+    if (!userId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.get<
+        ApiResponse<Record<string, number>>
+      >(`/chatroom/unread-counts`, {
+        params: { userId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+        },
+      });
+      if (response.data.success) {
+        setUnreadCount(response.data.data ?? {});
+        localStorage.setItem(
+          UNREAD_COUNT_STORAGE_KEY,
+          JSON.stringify(response.data.data ?? {})
+        );
+        // console.log(unreadCount);
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message || "Failed to fetch unread counts."
+        );
+      } else {
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    getUnreadMessagesCount(userId);
+  }, [getUnreadMessagesCount, userId]);
 
   const getChatRoomsRelatedToUser = useCallback(async (userId: string) => {
     setIsLoading(true);
@@ -145,6 +199,41 @@ const {isDarkMode} = useTheme();
     }
   }, []);
 
+  const markAsRead = useCallback(
+    async (
+      messageIds: string[],
+      userId: string) 
+      : Promise<ApiResponse<boolean> | undefined> => {
+      try {
+        const response = await axiosInstance.post<ApiResponse<boolean>>(
+          `/chatroom/mark-as-read`,
+          {
+            messageIds,
+            userId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+            },
+          }
+        );
+        if (response.data.success) {
+          return response.data;
+          };
+        }
+       catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setError(
+            err.response?.data?.message || "Error marking messages as read."
+          );
+        } else {
+          setError("An unexpected error occurred.");
+        }
+      }
+    },
+    []
+  );
+
   // const openChatRoom = useCallback(
   //   async (chatRoomId: string) => {
   //     await fetchMessagesByChatRoomId(chatRoomId);
@@ -153,6 +242,33 @@ const {isDarkMode} = useTheme();
   //   [fetchMessagesByChatRoomId, navigate]
   // );
 
+const handleUnReadCountUpdate = useCallback((message:Message)=>{
+   setUnreadCount((prev)=>{
+    if(
+      message.isDeleted ||
+      message.sender?.id === userId ||
+      message.readBy?.includes(userId) || 
+      currentChatRoomId === message.chatRoomId
+    ) {
+        return prev;
+    }
+    const updated = {
+      ...prev,
+      [message.chatRoomId]: (prev[message.chatRoomId] || 0) + 1,
+    }; 
+    localStorage.setItem(UNREAD_COUNT_STORAGE_KEY,JSON.stringify(updated));
+    return updated;
+    })
+  }, [currentChatRoomId,userId])
+
+  useEffect(() => {
+    if (!connection) return;
+    connection.on("ReceiveMessage", handleUnReadCountUpdate);
+    return () => {
+      connection.off("ReceiveMessage", handleUnReadCountUpdate);
+    };
+  }, [connection, handleUnReadCountUpdate]);
+  
   const openChatRoom = useCallback(
     async (chatRoomId: string): Promise<void> => {
       const room = chatRooms.find((room) => room.chatRoomId === chatRoomId);
@@ -165,25 +281,20 @@ const {isDarkMode} = useTheme();
     },
     [chatRooms, setCurrentChatRoomIdWrapper]
   );
-
   // --- SignalR Event Handlers ---
   const handleNewChatRoom = useCallback(
     (chatRoom: ChatRoomType) => {
-      // Check if the current user is a member of this chat room
-      if (chatRoom.users && chatRoom.users.some((u) => u.id === user?.id)) {
+      if (chatRoom.users && chatRoom.users.some((u) => u.id === userId)) {
         setChatRooms((prev) => {
           const exists = prev.some((r) => r.chatRoomId === chatRoom.chatRoomId);
           if (exists) {
-            // Update existing room if it already exists
             return prev.map((r) =>
               r.chatRoomId === chatRoom.chatRoomId ? { ...r, ...chatRoom } : r
             );
           }
-          // Add new room
           return [...prev, chatRoom];
         });
 
-        // Join the SignalR group for this chat room
         if (connection) {
           connection.invoke("JoinRoom", chatRoom.chatRoomId).catch((err) => {
             console.error("Failed to join new chat room group:", err);
@@ -193,9 +304,8 @@ const {isDarkMode} = useTheme();
         toast.error("Failed to join group");
       }
     },
-    [user, connection]
+    [userId, connection]
   );
-
   const handleChatRoomUpdated = useCallback(
     (chatRoomId: string, newName: string) => {
       setChatRooms((prev) =>
@@ -208,40 +318,35 @@ const {isDarkMode} = useTheme();
     },
     []
   );
-
   const handleChatRoomDeleted = useCallback((chatRoomId: string) => {
     setChatRooms((prev) => {
       const exists = prev.some((room) => room.chatRoomId === chatRoomId);
       const updated = prev.filter((room) => room.chatRoomId !== chatRoomId);
-      // Only show toast if the room was actually removed
       if (exists) {
         toast.error("A chat room you were in has been deleted.");
-        // Clear localStorage to ensure fresh data on reload
         localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
       }
       return updated;
     });
     setLastAction("chatroom-deleted");
   }, []);
-
   //not yet implemented
   const handleUserAddedToChatRoom = useCallback(
     (chatRoomId: string, userId: string) => {
-      if (userId === user?.id) {
-        if (user?.id) {
-          getChatRoomsRelatedToUser(user.id);
+      if (userId === userId) {
+        if (userId) {
+          getChatRoomsRelatedToUser(userId);
         }
       }
       setLastAction("user-added");
       chatRoomId.codePointAt(4);
     },
-    [user, getChatRoomsRelatedToUser]
+    [userId, getChatRoomsRelatedToUser]
   );
-
   //not yet implemented
   const handleUserRemovedFromChatRoom = useCallback(
     (chatRoomId: string, userId: string) => {
-      if (userId === user?.id) {
+      if (userId === userId) {
         // Remove the chat room from the list
         setChatRooms((prev) =>
           prev.filter((room) => room.chatRoomId !== chatRoomId)
@@ -249,9 +354,8 @@ const {isDarkMode} = useTheme();
       }
       setLastAction("user-removed");
     },
-    [user]
+    [userId]
   );
-
   useEffect(() => {
     if (!connection) return;
     connection.on("ChatRoomCreated", handleNewChatRoom);
@@ -274,7 +378,6 @@ const {isDarkMode} = useTheme();
     handleUserAddedToChatRoom,
     handleUserRemovedFromChatRoom,
   ]);
-
   const createChatRoom = useCallback(
     async (
       name: string,
@@ -300,7 +403,6 @@ const {isDarkMode} = useTheme();
             return [...prev, newRoom];
           });
 
-          // Join the SignalR group for this new chat room
           if (connection?.state === signalR.HubConnectionState.Connected) {
             try {
               await connection.invoke("JoinRoom", newRoom.chatRoomId);
@@ -332,7 +434,6 @@ const {isDarkMode} = useTheme();
     },
     [openChatRoom, connection]
   );
-
   const fetchChatRoomsWhereUserIsNotIn = useCallback(async (userId: string) => {
     setIsLoading(true);
     setError(null);
@@ -358,7 +459,6 @@ const {isDarkMode} = useTheme();
       setIsLoading(false);
     }
   }, []);
-
   const getChatRoomByName = useCallback(
     async (chatRoomName: string): Promise<ChatRoomType | null> => {
       setIsLoading(true);
@@ -383,7 +483,6 @@ const {isDarkMode} = useTheme();
     },
     []
   );
-
   const getChatRoomById = useCallback(async (chatRoomId: string) => {
     setIsLoading(true);
     setError(null);
@@ -404,7 +503,6 @@ const {isDarkMode} = useTheme();
       setIsLoading(false);
     }
   }, []);
-
   const deleteChatRoomAsync = useCallback(async (chatRoomId: string) => {
     setIsLoading(true);
     setError(null);
@@ -413,6 +511,12 @@ const {isDarkMode} = useTheme();
       setChatRooms((prev) =>
         prev.filter((room) => room.chatRoomId !== chatRoomId)
       );
+      setUnreadCount((prev) => {
+        const updated = { ...prev };
+        delete updated[chatRoomId];
+        localStorage.setItem(UNREAD_COUNT_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
       setLastAction("chatroom-deleted");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -424,7 +528,6 @@ const {isDarkMode} = useTheme();
       setIsLoading(false);
     }
   }, []);
-
   const updateChatRoomName = useCallback(
     async (chatRoomId: string, newName: string) => {
       setIsLoading(true);
@@ -453,7 +556,6 @@ const {isDarkMode} = useTheme();
     },
     []
   );
-
   const pinChatRoom = useCallback(async (chatRoomId: string) => {
     setIsLoading(true);
     setError(null);
@@ -486,7 +588,6 @@ const {isDarkMode} = useTheme();
       setIsLoading(false);
     }
   }, []);
-
   const unpinChatRoom = useCallback(async (chatRoomId: string) => {
     setIsLoading(true);
     setError(null);
@@ -522,7 +623,6 @@ const {isDarkMode} = useTheme();
       setIsLoading(false);
     }
   }, []);
-
   const getPrivateChatRoom = useCallback(
     async (
       currentUserId: string,
@@ -553,7 +653,14 @@ const {isDarkMode} = useTheme();
             if (exists) return prev;
             return [...prev, existingRoom];
           });
-
+          setUnreadCount((prev) => {
+            const updated = { ...prev, [existingRoom.chatRoomId]: 0 };
+            localStorage.setItem(
+              UNREAD_COUNT_STORAGE_KEY,
+              JSON.stringify(updated)
+            );
+            return updated;
+          });
           return existingRoom;
         } else {
           const newRoom = await createChatRoom("", false, [
@@ -576,7 +683,6 @@ const {isDarkMode} = useTheme();
     },
     [createChatRoom]
   );
-
   // Force refresh chat rooms from server (bypass localStorage cache)
   const refreshChatRoomsFromServer = useCallback(async (userId: string) => {
     setIsLoading(true);
@@ -599,6 +705,7 @@ const {isDarkMode} = useTheme();
       if (response.data.success) {
         const freshChatRooms = response.data.data ?? [];
         setChatRooms(freshChatRooms);
+        getUnreadMessagesCount(userId);
       } else {
         console.error(
           "❌ Failed to refresh chat rooms:",
@@ -618,20 +725,19 @@ const {isDarkMode} = useTheme();
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
   // fetch chat rooms from server on login/page load to avoid stale localStorage
   useEffect(() => {
-    if (user?.id) {
-      getChatRoomsRelatedToUser(user.id);
+    if (userId) {
+      getChatRoomsRelatedToUser(userId);
     }
     // Optionally, clear chatRooms if user logs out
-    if (!user?.id) {
+    if (!userId) {
       setChatRooms([]);
       localStorage.removeItem(CHAT_ROOMS_STORAGE_KEY);
     }
-  }, [user?.id, getChatRoomsRelatedToUser]);
-
+  }, [userId, getChatRoomsRelatedToUser]);
   // Auto-refresh chat rooms when SignalR connection is established
   // useEffect(() => {
   //   if (
@@ -663,11 +769,13 @@ const {isDarkMode} = useTheme();
 
   //   return () => clearInterval(interval);
   // }, [user?.id, connection, getChatRoomsRelatedToUser]);
-
   return (
     <ChatRoomContext.Provider
       value={{
         isDarkMode,
+        markAsRead,
+        unreadCount,
+        setUnreadCount,
         getPrivateChatRoom,
         fetchChatRoomsWhereUserIsNotIn,
         chatRoomsThatUserIsNotIn,
@@ -688,6 +796,7 @@ const {isDarkMode} = useTheme();
         updateChatRoomName,
         refreshChatRoomsFromServer,
         currentChatRoomId,
+        getUnreadMessagesCount,
         setCurrentChatRoomId: setCurrentChatRoomIdWrapper,
         pinChatRoom,
         unpinChatRoom,

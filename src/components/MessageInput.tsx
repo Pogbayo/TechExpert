@@ -1,25 +1,26 @@
-import { useState } from "react";
-import type { MessageInputProps } from "../Types/ContextTypes/contextType";
+import { useState, useRef } from "react";
 import { useMessage } from "../context/MessageContextFolder/useMessage";
-import { IoSendSharp } from "react-icons/io5";
 import { useAuth } from "../context/AuthContextFolder/useAuth";
-import { useSignal } from "../context/SignalRContextFolder/useSignalR";
+import { IoSendSharp } from "react-icons/io5";
+import { FaPaperclip } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { useRef } from "react";
-// import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
+import { motion } from "framer-motion";
+import type { MessageInputProps } from "../Types/ContextTypes/contextType";
+import { useTheme } from "../context/ThemeContextFoler/useTheme";
+import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 
 export default function MessageInput({ isGroup }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { sendMessage, currentChatRoomId } = useMessage();
   const { user } = useAuth();
-  // const { currentChatRoomId } = useChatRoom(); // Remove this line
   const { connection } = useSignal();
-  const [loading, setLoading] = useState(false);
+  const { isDarkMode } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  void isGroup;
+
   const handleSend = async () => {
+    setMessage("");
     if (connection?.state !== "Connected") {
-      toast.error("Error: Not connected to the chat server.");
+      toast.error("Not connected to the chat server.");
       return;
     }
     if (!currentChatRoomId) {
@@ -27,30 +28,53 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
       return;
     }
     if (message.trim() === "") return;
-    setLoading(true);
-    await sendMessage(currentChatRoomId, user?.id ?? "", message);
-    setMessage("");
-    setLoading(false);
-    // Auto resize after send
-    if (textareaRef.current) textareaRef.current.style.height = '40px';
+
+    try {
+      await sendMessage(currentChatRoomId, user?.id ?? "", message);
+      if (textareaRef.current) textareaRef.current.style.height = "48px"; // Reset height
+    } catch {
+      toast.error("Failed to send message.");
+    }
   };
 
-  // Auto-expand textarea
+  void isGroup;
+
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const el = e.target;
-    el.style.height = '40px';
-    el.style.height = el.scrollHeight + 'px';
+    el.style.height = "48px";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
     setMessage(el.value);
   };
 
   return (
-    <div className="flex w-full">
+    <div
+      className={`flex items-center rounded-full shadow-md p-2 mx-2 transition-all duration-200 ${
+        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+      }`}
+      style={{ maxWidth: "98%" }}
+    >
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        className={`p-2 rounded-full transition-colors ${
+          isDarkMode
+            ? "text-gray-400 hover:text-blue-400"
+            : "text-gray-500 hover:text-blue-500"
+        }`}
+        title="Attach file (coming soon)"
+        disabled
+      >
+        <FaPaperclip size={20} />
+      </motion.button>
       <textarea
         ref={textareaRef}
-        className="flex-1 border p-2 rounded-l resize-none min-h-[40px] max-h-40 overflow-hidden"
+        className={`flex-1 bg-transparent resize-none min-h-[48px] max-h-[128px] px-3 py-2.5 focus:outline-none text-sm ${
+          isDarkMode
+            ? "text-white placeholder-gray-500"
+            : "text-gray-900 placeholder-gray-400"
+        }`}
         value={message}
         onChange={handleInput}
-        placeholder="Type your message..."
+        placeholder="Type a message..."
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -58,47 +82,27 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
           }
         }}
         rows={1}
-        style={{
-          height: '40px',
-          fontSize: '16px' // Prevent iOS zoom
-        }}
+        style={{ fontSize: "16px" }}
+        aria-label="Message input"
       />
-      <button
-        className="bg-blue-500 text-white p-2 rounded-r cursor-pointer min-w-[40px] flex items-center justify-center"
+      <motion.button
+        className={`p-2.5 rounded-full flex items-center justify-center transition-colors ${
+          !message.trim()
+            ? isDarkMode
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-gray-300 cursor-not-allowed"
+            : isDarkMode
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
+        }`}
         onClick={handleSend}
-        disabled={loading}
+        disabled={!message.trim()}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+        title="Send message"
       >
-        {loading ? (
-          <span className="loader-dots">
-            <span></span><span></span><span></span>
-          </span>
-        ) : (
-          <IoSendSharp color="white" />
-        )}
-      </button>
-      <style>{`
-        .loader-dots {
-          display: inline-block;
-          width: 24px;
-          height: 16px;
-          text-align: center;
-        }
-        .loader-dots span {
-          display: inline-block;
-          width: 6px;
-          height: 6px;
-          margin: 0 1px;
-          background: #fff;
-          border-radius: 50%;
-          animation: loader-dots-bounce 1.2s infinite ease-in-out both;
-        }
-        .loader-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes loader-dots-bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1); }
-        }
-      `}</style>
+        <IoSendSharp size={20} />
+      </motion.button>
     </div>
   );
 }

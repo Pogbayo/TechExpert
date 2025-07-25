@@ -13,6 +13,7 @@ import { useSignal } from "../context/SignalRContextFolder/useSignalR";
 import * as signalR from "@microsoft/signalr";
 import { useSwipeable } from "react-swipeable";
 import { useNavigate } from "react-router-dom";
+import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -63,6 +64,7 @@ ChatWindowPropsExtended) {
 
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
+  const { markAsRead, unreadCount, setUnreadCount } = useChatRoom();
 
   useEffect(() => {
     if (!chatRoom?.chatRoomId) {
@@ -83,6 +85,25 @@ ChatWindowPropsExtended) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messagesByChatRoomId]);
+
+  useEffect(() => {
+    if (!chatRoom?.chatRoomId || !user?.id) return;
+    const roomId = chatRoom.chatRoomId;
+    const unread = unreadCount[roomId] || 0;
+    if (unread > 0 && messagesByChatRoomId[roomId]) {
+      // Get messages not sent by the logged-in user
+      const messages = messagesByChatRoomId[roomId]!.filter(
+        (msg) => msg.sender?.id !== user.id
+      );
+      // Get the last 'unread' messages (nth last)
+      const lastUnreadMessages = messages.slice(-unread);
+      const messageIds = lastUnreadMessages.map((msg) => msg.messageId);
+      if (messageIds.length > 0) {
+        markAsRead(messageIds, user.id);
+        setUnreadCount((prev) => ({ ...prev, [roomId]: 0 }));
+      }
+    }
+  }, [chatRoom, messagesByChatRoomId, user?.id]);
 
   if (!chatRoom) {
     return (
@@ -161,11 +182,9 @@ ChatWindowPropsExtended) {
 
   const renderConnectionStatus = () => {
     if (!isMobileView) {
-      // On desktop: just show chat room name
       return extractChatRoomName(chatRoom);
     }
 
-    // On mobile: show connection status or chat room name
     if (connectionStatus === signalR.HubConnectionState.Connected) {
       return extractChatRoomName(chatRoom);
     }
