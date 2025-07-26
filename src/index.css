@@ -77,11 +77,11 @@
   display: inline-block;
 }
 
-* {
+/* * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
+} */
 
 /* Hide scrollbars but allow scrolling (cross-browser) */
 .scrollbar-hide {
