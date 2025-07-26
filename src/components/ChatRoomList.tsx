@@ -12,7 +12,7 @@ import { useOnlineUsers } from "../context/OnlineUsersContext";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import ChatRoomRow from "./ChatRoomRow";
-import { FiLogOut, FiPlus, FiSearch, FiFilter, FiX } from "react-icons/fi";
+import { FiLogOut, FiPlus, FiSearch, FiFilter, FiX, FiRefreshCw } from "react-icons/fi";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
@@ -226,6 +226,10 @@ export default function ChatRoomList({
     logout();
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   const handleSelectChatRoom = async (chatRoomId: string) => {
     const unread = unreadCount[chatRoomId] || 0;
     const messages = messagesByChatRoomId[chatRoomId] || [];
@@ -366,6 +370,14 @@ export default function ChatRoomList({
               {isDarkMode ? <MdLightMode /> : <MdDarkMode />}
             </button>
           )}
+
+          <button
+            onClick={handleRefresh}
+            className="bg-[var(--color-input-bg)] p-2 rounded-full text-gray-600 hover:text-blue-500"
+            title="Refresh app"
+          >
+            <FiRefreshCw />
+          </button>
 
           <button
             onClick={handleLogout}

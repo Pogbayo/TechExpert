@@ -13,6 +13,7 @@ import type { ChatRoomType } from "../Types/EntityTypes/ChatRoom";
 import { useSwipeable } from "react-swipeable";
 import { useEffect } from "react";
 import type { ChatRoomRowProps } from "../Types/ContextTypes/contextType";
+import Avatar from "./Avatar";
 // import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 
 export default function ChatRoomRow({
@@ -325,23 +326,15 @@ export default function ChatRoomRow({
             </svg>
           </div>
         ) : (
-          <div className="relative">
-            <img
-              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                chatRoomName
-              )}`}
-              alt="user avatar"
-              className={`${
-                compactView ? "w-9 h-9" : "w-12 h-12"
-              } rounded-full border-2 border-white bg-gray-200 object-cover`}
-            />
-            {(() => {
+          <Avatar
+            username={chatRoomName}
+            size={compactView ? 'sm' : 'lg'}
+            showOnlineIndicator={true}
+            isOnline={(() => {
               const otherUser = room.users.find((u) => u.id !== user?.id);
-              return otherUser && onlineUsers.includes(otherUser.id) ? (
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-              ) : null;
+              return otherUser && onlineUsers.includes(otherUser.id);
             })()}
-          </div>
+          />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">

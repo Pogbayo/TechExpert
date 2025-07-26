@@ -11,6 +11,7 @@ import {
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useProfile } from "../context/ProfileContextFolder/ProfileContext";
+import Avatar from "./Avatar";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -70,12 +71,10 @@ export default function ProfilePage() {
       <div className="flex flex-1 items-center justify-center">
         <div className="bg-[var(--color-background)] border border-[var(--color-border)] rounded-3xl shadow-2xl p-8 w-full max-w-lg flex flex-col items-center animate-fade-in">
           {/* Avatar */}
-          <img
-            src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-              user?.username || "user"
-            )}`}
-            alt="user avatar"
-            className="w-32 h-32 rounded-full shadow-lg mb-4 bg-gray-200 object-cover"
+          <Avatar
+            username={user?.username || "user"}
+            size="xl"
+            className="shadow-lg mb-4"
           />
 
           <p className="text-gray-500 italic mb-6">{user?.username || "No username set"}</p>

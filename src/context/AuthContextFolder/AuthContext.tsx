@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
-    setUser(null);
+    // Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("chatRoom");
@@ -180,6 +180,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Clear axios authorization header
     delete axiosInstance.defaults.headers.common["Authorization"];
+    
+    // Navigate to auth page instead of clearing user state
+    window.location.href = '/auth';
   }
 
   return (

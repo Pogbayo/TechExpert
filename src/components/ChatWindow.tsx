@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useChatRoom } from "../context/ChatRoomContextFolder/useChatRoom";
 import { useTheme } from "../context/ThemeContextFoler/useTheme";
 import { useOnlineUsers } from "../context/OnlineUsersContext";
+import Avatar from "./Avatar";
 
 interface ChatWindowPropsExtended extends ChatWindowProps {
   isMobileView: boolean;
@@ -326,31 +327,10 @@ ChatWindowPropsExtended) {
             onClick={() => setShowOtherProfile(true)}
             title="View profile"
           >
-            <img
-              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                otherUser.username || "user"
-              )}`}
-              alt="user avatar"
-              className="w-10 h-10 rounded-full bg-gray-200 object-cover border-2 border-white"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                const fallback = document.createElement("div");
-                fallback.style.width = "40px";
-                fallback.style.height = "40px";
-                fallback.style.borderRadius = "50%";
-                fallback.style.background = "#e0e0e0";
-                fallback.style.display = "flex";
-                fallback.style.alignItems = "center";
-                fallback.style.justifyContent = "center";
-                fallback.style.fontWeight = "bold";
-                fallback.style.fontSize = "18px";
-                fallback.style.color = "#888";
-                fallback.innerText = otherUser.username
-                  ? otherUser.username.charAt(0).toUpperCase()
-                  : "?";
-                target.parentNode?.insertBefore(fallback, target.nextSibling);
-              }}
+            <Avatar
+              username={otherUser.username || "user"}
+              size="md"
+              onClick={() => setShowOtherProfile(true)}
             />
           </div>
         ) : null}
@@ -366,31 +346,10 @@ ChatWindowPropsExtended) {
             >
               &times;
             </button>
-            <img
-              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                otherUser.username
-              )}`}
-              alt="user avatar"
-              className="w-24 h-24 rounded-full shadow mb-4 bg-gray-200 object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                const fallback = document.createElement("div");
-                fallback.style.width = "96px";
-                fallback.style.height = "96px";
-                fallback.style.borderRadius = "50%";
-                fallback.style.background = "#e0e0e0";
-                fallback.style.display = "flex";
-                fallback.style.alignItems = "center";
-                fallback.style.justifyContent = "center";
-                fallback.style.fontWeight = "bold";
-                fallback.style.fontSize = "40px";
-                fallback.style.color = "#888";
-                fallback.innerText = otherUser.username
-                  ? otherUser.username.charAt(0).toUpperCase()
-                  : "?";
-                target.parentNode?.insertBefore(fallback, target.nextSibling);
-              }}
+            <Avatar
+              username={otherUser.username}
+              size="xl"
+              className="shadow mb-4"
             />
             <h2 className="text-lg font-bold mb-2">{otherUser.username}</h2>
             {otherUser.email && (
@@ -665,34 +624,10 @@ ChatWindowPropsExtended) {
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {chatRoom.users.map((member) => (
                           <div key={member.id} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${groupPanelTextClass} ${groupPanelHoverClass}`}>
-                            <div className="relative">
-                              <img
-                                src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
-                                  member.username || "user"
-                                )}`}
-                                alt={`${member.username} avatar`}
-                                className="w-10 h-10 rounded-full bg-gray-200 object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = "none";
-                                  const fallback = document.createElement("div");
-                                  fallback.style.width = "40px";
-                                  fallback.style.height = "40px";
-                                  fallback.style.borderRadius = "50%";
-                                  fallback.style.background = "#e0e0e0";
-                                  fallback.style.display = "flex";
-                                  fallback.style.alignItems = "center";
-                                  fallback.style.justifyContent = "center";
-                                  fallback.style.fontWeight = "bold";
-                                  fallback.style.fontSize = "16px";
-                                  fallback.style.color = "#888";
-                                  fallback.innerText = member.username
-                                    ? member.username.charAt(0).toUpperCase()
-                                    : "?";
-                                  target.parentNode?.insertBefore(fallback, target.nextSibling);
-                                }}
-                              />
-                            </div>
+                            <Avatar
+                              username={member.username || "user"}
+                              size="md"
+                            />
                             <div className="flex-1">
                               <p className={`font-medium ${groupPanelTextClass}`}>
                                 {member.username}
