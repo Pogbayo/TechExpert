@@ -571,7 +571,7 @@ ChatWindowPropsExtended) {
       </div>
 
       {/* Message Input (Fixed Bottom) */}
-      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)] sticky bottom-0 z-20 pb-safe">
+      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-background)] sticky bottom-0 z-20">
         <MessageInput isGroup={chatRoom?.isGroup ?? false} />
       </div>
 
