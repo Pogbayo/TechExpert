@@ -159,7 +159,7 @@ export default function ChatRooms({
         ) : activeTab === "users" ? (
           Array.isArray(nonMutualFriends) && nonMutualFriends.length === 0 ? (
             <div
-            style={{ color: isDarkMode ? "lightblue" : "red"}} 
+            style={{ color: isDarkMode ? "lightblue" : "lightgrey"}} 
             className="text-center mt-20  bg-gray-100 dark:bg-transparent rounded px-4 py-2 inline-block mx-auto">
               There are no non-mutual friends to add.
             </div>
@@ -175,7 +175,9 @@ export default function ChatRooms({
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-base truncate dark:text-white text-[var(--color-text)]">
+                    <span 
+                    style={{color:isDarkMode?"white":"black"}}
+                    className="font-semibold text-base truncate dark:text-white text-[var(--color-text)]">
                       {u.username}
                     </span>
                     {/* <p className="text-[var(--color-chat-text)] text-sm italic truncate">
