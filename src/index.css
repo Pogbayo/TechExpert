@@ -98,15 +98,12 @@ body {
 
 .app {
   width: 100vw;
-  background-color: red;
-  /* If you want to control scrolling: */
+  min-height: 100dvh; 
+  background-color: var(--color-background);
   overflow: hidden;
   font-family: sans-serif;
-  /* overflow-y: auto; */
   margin: 0;
-  /* or overflow-x: hidden; */
 }
-
 html, body, .app {
   font-family:  sans-serif;
 }
