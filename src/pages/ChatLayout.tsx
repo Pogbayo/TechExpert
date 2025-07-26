@@ -21,6 +21,23 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const { toggleTheme } = useTheme();
 
+  // Mobile viewport height handling for keyboard
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+
+    return () => {
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
+    };
+  }, []);
+
   // Load chat room if one is selected
   useEffect(() => {
     if (selectedChatRoomId && !chatRoom) {
@@ -55,7 +72,12 @@ export default function ChatLayout() {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]">
+    <div 
+      className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]"
+      style={{
+        height: isMobileView ? 'calc(var(--vh, 1vh) * 100)' : '100vh'
+      }}
+    >
       {!isMobileView && (
         <header className="flex items-center justify-between px-[var(--space-2)] py-[var(--space-2)] border-b border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text)]">
           <h1 style={{ fontSize: "var(--font-size-sm)" }} className="font-bold">
@@ -105,7 +127,12 @@ export default function ChatLayout() {
         )}
 
         {(!isMobileView || showChatWindow) && (
-          <div className="flex-1 p-0 flex flex-col bg-[var(--color-background)] min-h-[50vh]">
+          <div 
+            className="flex-1 p-0 flex flex-col bg-[var(--color-background)] min-h-[50vh]"
+            style={{
+              height: isMobileView ? 'calc(var(--vh, 1vh) * 100)' : 'auto'
+            }}
+          >
             <ChatWindow
               selectedChatRoomId={selectedChatRoomId}
               chatRoom={chatRoom}

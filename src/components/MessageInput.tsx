@@ -46,6 +46,18 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
     setMessage(el.value);
   };
 
+  const handleFocus = () => {
+    // Ensure the input stays visible when keyboard appears
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 100);
+  };
+
   return (
     <div
       className={`flex items-center rounded-full shadow-md p-2 mx-2 transition-all duration-200 ${
@@ -67,6 +79,7 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
       </motion.button>
       <textarea
         ref={textareaRef}
+        id="message-input"
         className={`flex-1 bg-transparent resize-none min-h-[48px] max-h-[128px] px-3 py-2.5 focus:outline-none text-sm ${
           isDarkMode
             ? "text-white placeholder-gray-500"
@@ -74,6 +87,7 @@ export default function MessageInput({ isGroup }: MessageInputProps) {
         }`}
         value={message}
         onChange={handleInput}
+        onFocus={handleFocus}
         placeholder="Type a message..."
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
