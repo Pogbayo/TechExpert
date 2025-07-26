@@ -97,13 +97,14 @@ body {
 }
 
 .app {
-  
+  width: 100vw;
+  background-color: red;
   /* If you want to control scrolling: */
   overflow: hidden;
   font-family: sans-serif;
-  background-color: red;
   /* overflow-y: auto; */
   margin: 0;
+  /* or overflow-x: hidden; */
 }
 
 html, body, .app {
