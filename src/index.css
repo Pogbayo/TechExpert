@@ -91,15 +91,16 @@
 }
 
 body {
-  /* overflow: hidden;  <-- REMOVE this! */
   margin: 0;
   padding: 0;
+  background-color: olivedrab;
   box-sizing: border-box;
 }
 
 .app {
   min-height: 100vh;
   width: 100vw;
+  background-color: red;
   /* If you want to control scrolling: */
   overflow: hidden;
   font-family: sans-serif;
@@ -159,53 +160,3 @@ input, textarea {
   }
 }
 
-/* Mobile keyboard support */
-:root {
-  --vh: 1vh;
-}
-
-/* Safe area support for iOS devices */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* Mobile viewport height fix */
-@media screen and (max-width: 768px) {
-  .h-screen {
-    height: calc(var(--vh, 1vh) * 100);
-  }
-  
-  /* Prevent zoom on input focus */
-  input, textarea, select {
-    font-size: 16px !important;
-  }
-  
-  /* Ensure sticky positioning works properly on mobile */
-  .sticky {
-    position: -webkit-sticky;
-    position: sticky;
-  }
-}
-
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
-}
-
-/* Mobile keyboard animation support */
-@media screen and (max-width: 768px) {
-  .chat-container {
-    transition: height 0.3s ease;
-  }
-  
-  /* Prevent body scroll when keyboard is open */
-  body.keyboard-open {
-    position: fixed;
-    width: 100%;
-  }
-}

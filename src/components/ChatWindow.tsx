@@ -75,55 +75,7 @@ ChatWindowPropsExtended) {
   const { markAsRead, unreadCount, setUnreadCount } = useChatRoom();
   const { isDarkMode } = useTheme();
 
-  // Mobile keyboard handling - scroll chat to bottom when input is focused
-  useEffect(() => {
-    if (!isMobileView) return;
 
-    const handleInputFocus = () => {
-      // Wait for keyboard animation to complete
-      setTimeout(() => {
-        if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-        if (bottomRef.current) {
-          bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 300);
-    };
-
-    // Listen for focus events on the message input
-    const messageInput = document.getElementById('message-input');
-    if (messageInput) {
-      messageInput.addEventListener('focus', handleInputFocus);
-      return () => {
-        messageInput.removeEventListener('focus', handleInputFocus);
-      };
-    }
-  }, [isMobileView, messagesByChatRoomId]);
-
-  // Handle viewport height changes on mobile (keyboard appearance)
-  useEffect(() => {
-    if (!isMobileView) return;
-
-    const handleResize = () => {
-      // Update the chat container height to account for keyboard
-      if (chatContainerRef.current) {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-      }
-    };
-
-    // Set initial viewport height
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, [isMobileView]);
 
   useEffect(() => {
     if (!chatRoom?.chatRoomId) {
@@ -451,10 +403,8 @@ ChatWindowPropsExtended) {
       {/* Messages List (Scrollable) */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] scrollbar-hide min-h-0"
-        style={{
-          height: isMobileView ? 'calc(100vh - 140px)' : 'auto'
-        }}
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] min-h-0"
+
       >
         {hasMessages ? (
           currentMessages!
