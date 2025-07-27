@@ -60,6 +60,7 @@ export default function ChatRoomList({
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [error, setError] = useState("");
   const [plus, setPlus] = useState(true);
+  void plus;
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -457,12 +458,12 @@ export default function ChatRoomList({
           </div>
 
           <div
-            className={`flex gap-2 ml-8 mt-2 mb-2 sticky top-[calc(var(--header-height)+var(--search-height))] z-10 transition-transform duration-300 ${
+            className={`flex gap-1 md:gap-2 ml-4 mt-2 mb-2 sticky top-[calc(var(--header-height)+var(--search-height))] z-10 transition-transform duration-300 ${
               isScrolledUp ? "translate-y-[-100%]" : "translate-y-0"
             }`}
             style={{ "--search-height": "48px" } as React.CSSProperties}
           >
-            {filterOptions.map((filter) => (
+          {filterOptions.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -535,16 +536,16 @@ export default function ChatRoomList({
           setShowAllUsers((prev) => !prev);
           setPlus((prev) => !prev);
         }}
-        className={`absolute bottom-6 right-6 z-20 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all text-3xl
+        className={`absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all text-2xl
           ${
             isDarkModeState
               ? "bg-white text-blue-600 hover:bg-gray-200"
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
-        title={plus ? "Add user or join group" : "Back"}
+        title={showAllUsers ? "Back to chats" : "Add user or join group"}
         style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
       >
-        {plus ? <FiPlus /> : <FiX />}
+        {showAllUsers ? <FiX /> : <FiPlus />}
       </button>
     </div>
   );

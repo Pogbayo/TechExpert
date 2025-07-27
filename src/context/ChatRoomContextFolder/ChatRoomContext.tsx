@@ -271,15 +271,19 @@ const handleUnReadCountUpdate = useCallback((message:Message)=>{
   
   const openChatRoom = useCallback(
     async (chatRoomId: string): Promise<void> => {
-      const room = chatRooms.find((room) => room.chatRoomId === chatRoomId);
-      if (room) {
-        setChatRoom(room);
-        setCurrentChatRoomIdWrapper(chatRoomId);
-      } else {
-        console.log("");
-      }
+      // Use functional state update to get the latest chatRooms
+      setChatRooms((currentChatRooms) => {
+        const room = currentChatRooms.find((room) => room.chatRoomId === chatRoomId);
+        if (room) {
+          setChatRoom(room);
+          setCurrentChatRoomIdWrapper(chatRoomId);
+        } else {
+          console.log("Room not found in current chat rooms:", chatRoomId);
+        }
+        return currentChatRooms; // Return unchanged state
+      });
     },
-    [chatRooms, setCurrentChatRoomIdWrapper]
+    [setCurrentChatRoomIdWrapper]
   );
   // --- SignalR Event Handlers ---
   const handleNewChatRoom = useCallback(
@@ -415,7 +419,9 @@ const handleUnReadCountUpdate = useCallback((message:Message)=>{
           }
 
           setShowCreateModal(false);
-          openChatRoom(newRoom.chatRoomId);
+          // Ensure the new room is set as the current chat room immediately
+          setChatRoom(newRoom);
+          setCurrentChatRoomIdWrapper(newRoom.chatRoomId);
           toast.success(`${newRoom.name || "Chat room"} created successfully.`);
           return newRoom;
         }
@@ -669,6 +675,9 @@ const handleUnReadCountUpdate = useCallback((message:Message)=>{
           ]);
 
           if (newRoom) {
+            // Ensure the new room is set as the current chat room
+            setChatRoom(newRoom);
+            setCurrentChatRoomIdWrapper(newRoom.chatRoomId);
             return newRoom;
           } else {
             throw new Error("Failed to create private chat room.");

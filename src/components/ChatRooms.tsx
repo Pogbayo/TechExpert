@@ -58,11 +58,10 @@ export default function ChatRooms({
     const chatRoom = await getPrivateChatRoom(userId, friendId);
     if (chatRoom) {
       console.log("🔗 ChatRooms - Opening private chat:", chatRoom.chatRoomId);
-      setCurrentChatRoomId(chatRoom.chatRoomId);
-      openChatRoom(chatRoom.chatRoomId);
-      setCurrentChatRoomId(chatRoom.chatRoomId);
+      // The getPrivateChatRoom function now handles setting the current chat room
+      if (onUserOrGroupSelected) onUserOrGroupSelected(chatRoom.chatRoomId);
+      if (isMobileView && setShowChatWindow) setShowChatWindow(true);
     }
-    if (onUserOrGroupSelected) onUserOrGroupSelected(chatRoom.chatRoomId);
     setIsAddingUser(false);
   };
 
@@ -148,19 +147,18 @@ export default function ChatRooms({
       {/* Scrollable List */}
       <div className="flex-1 mt-4 px-4 pb-6 overflow-y-auto scrollbar-hide">
         {isAddingUser && (
-          <div className="text-center text-[var(--color-secondary)] mt-4">
+          <div className="text-center text-gray-500 mt-4">
             Preparing chat...
           </div>
         )}
         {isLoading ? (
-          <div className="text-center text-[var(--color-secondary)] mt-20">
+          <div className="text-center text-gray-500 mt-20">
             {activeTab === "users" ? "Loading users..." : "Loading groups..."}
           </div>
         ) : activeTab === "users" ? (
           Array.isArray(nonMutualFriends) && nonMutualFriends.length === 0 ? (
             <div
-            style={{ color: isDarkMode ? "lightblue" : "lightgrey"}} 
-            className="text-center mt-20  bg-gray-100 dark:bg-transparent rounded px-4 py-2 inline-block mx-auto">
+            className="text-center mt-20 text-gray-500 bg-gray-100 dark:bg-transparent rounded px-4 py-2 inline-block mx-auto">
               There are no non-mutual friends to add.
             </div>
           ) : (
@@ -211,8 +209,7 @@ export default function ChatRooms({
             ))}
           </ul>
         ) : (
-          <div className="text-center mt-20 dark:text-white text-red-100"
-          style={{color:"red"}}>
+          <div className="text-center mt-20 text-gray-500">
             There are no groups available to join.
           </div>
         )}
