@@ -167,20 +167,22 @@ export default function ChatRooms({
                 <li
                   key={u.id}
                   onClick={() => handleOpenChatRoom(user?.id ?? "", u.id)}
-                  className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-chat-bg)] shadow-md cursor-pointer transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98]"
                 >
-                  <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-xl flex-shrink-0">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-lg flex-shrink-0">
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <span 
-                    style={{color:isDarkMode?"white":"black"}}
-                    className="font-semibold text-base truncate dark:text-white text-[var(--color-text)]">
+                      className="font-bold truncate text-sm"
+                      style={{
+                        color: "var(--color-text)",
+                        fontFamily: "var(--font-primary)",
+                      }}
+                      title={u.username}
+                    >
                       {u.username}
                     </span>
-                    {/* <p className="text-[var(--color-chat-text)] text-sm italic truncate">
-                      send a message...
-                    </p> */}
                   </div>
                 </li>
               ))}

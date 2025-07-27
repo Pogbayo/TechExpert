@@ -449,8 +449,7 @@ export default function ChatRoomRow({
                     fontWeight: 400,
                   }}
                 >
-                  {/* send a message to start a conversation */}
-                  ...
+                  send a message to start a conversation
                 </span>
               )}
             </p>
