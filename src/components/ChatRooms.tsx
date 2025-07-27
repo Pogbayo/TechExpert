@@ -10,7 +10,7 @@ export default function ChatRooms({
   onUserOrGroupSelected,
   setShowChatWindow,
   isMobileView,
-  isDarkMode,
+  // isDarkMode,
 }: {
   onUserOrGroupSelected?: (chatRoomId: string) => void;
   setShowChatWindow?: (val: boolean) => void;
