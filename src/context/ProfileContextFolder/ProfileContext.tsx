@@ -8,16 +8,26 @@ import React, {
 import axiosInstance from "../../IAxios/axiosInstance";
 import type { ProfileContextType } from "../../Types/ContextTypes/contextType";
 import { useSignal } from "../SignalRContextFolder/useSignalR";
+import type { ApiResponse } from "../../Types/ApiResponseTypes/ApiResponse";
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
-export function ProfileProvider({ children, userId }: { children: React.ReactNode, userId: string }) {
+export function ProfileProvider({
+  children,
+  userId,
+}: {
+  children: React.ReactNode;
+  userId: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [username, setUsername] = useState<string>("");
   const { connection } = useSignal();
+
   const updateUsername = useCallback(
-    async (newUsername: string) => {
-      if (!userId) return false;
+    async (newUsername: string): Promise<ApiResponse<string>> => {
+      if (!userId)
+        return { success: false, message: "User ID is missing", data: "" };
       setLoading(true);
       setError("");
       try {
@@ -29,22 +39,35 @@ export function ProfileProvider({ children, userId }: { children: React.ReactNod
           }
         );
         if (res.data && res.data.success) {
-          // setUser({ ...user, username: newUsername }); // This line was removed as per the edit hint
+          // setUser({ ...user, username: res.data.data });
+          setUsername(res.data.data);
           setLoading(false);
-          return true;
+          return {
+            success: true,
+            message: res.data.message || "Username updated successfully",
+            data: res.data.data,
+          };
         } else {
           setError(res.data?.message || "Failed to update username");
           setLoading(false);
-          return false;
+          return {
+            success: false,
+            message: res.data?.message || "Failed to update username",
+            data: "",
+          };
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setError(e?.response?.data?.message || "Failed to update username");
         setLoading(false);
-        return false;
+        return {
+          success: false,
+          message: e?.response?.data?.message || "Failed to update username",
+          data: "",
+        };
       }
     },
-    [userId] // Changed from [setUser, user] to [userId]
+    [userId]
   );
 
   const updatePassword = async (
@@ -83,20 +106,30 @@ export function ProfileProvider({ children, userId }: { children: React.ReactNod
     if (!connection) {
       return;
     }
-    connection.on("UsernameChanged", updateUsername);
-    return () => {
-      connection.off("UsernameChanged", updateUsername);
+    const handleUsernameChanged = (newUsername: string) => {
+      setUsername(newUsername);
     };
-  }, [connection, updateUsername]);
+    connection.on("UsernameChanged", handleUsernameChanged);
+    return () => {
+      connection.off("UsernameChanged", handleUsernameChanged);
+    };
+  }, [connection]);
 
   return (
     <ProfileContext.Provider
-      value={{ updateUsername, updatePassword, loading, error, setError }}
+      value={{
+        updateUsername,
+        updatePassword,
+        loading,
+        error,
+        setError,
+        username,
+      }}
     >
       {children}
     </ProfileContext.Provider>
   );
-};
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useProfile = () => {

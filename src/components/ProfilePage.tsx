@@ -14,15 +14,15 @@ import { useProfile } from "../context/ProfileContextFolder/ProfileContext";
 import Avatar from "./Avatar";
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [showEditUsername, setShowEditUsername] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
-  const [newUsername, setNewUsername] = useState(user?.username || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { updateUsername, updatePassword, loading, error, setError } =
+  const { updateUsername, updatePassword, loading, error, setError, username } =
     useProfile();
+  const [newUsername, setNewUsername] = useState(username || "");
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
@@ -37,7 +37,7 @@ export default function ProfilePage() {
     const success = await updateUsername(newUsername);
     if (success) {
       setShowEditUsername(false);
-      setNewUsername(newUsername); // Ensure state is updated
+      setNewUsername(username);
       toast.success("Username updated successfully");
     } else if (!success) {
       toast.error("Error updating username");
@@ -71,13 +71,11 @@ export default function ProfilePage() {
       <div className="flex flex-1 items-center justify-center">
         <div className="bg-[var(--color-background)] border border-[var(--color-border)] rounded-3xl shadow-2xl p-8 w-full max-w-lg flex flex-col items-center animate-fade-in">
           {/* Avatar */}
-          <Avatar
-            username={user?.username || "user"}
-            size="xl"
-            className="shadow-lg mb-4"
-          />
+          <Avatar username={username} size="xl" className="shadow-lg mb-4" />
 
-          <p className="text-gray-500 italic mb-6">{user?.username || "No username set"}</p>
+          <p className="text-gray-500 italic mb-6">
+            {username || "No username set"}
+          </p>
 
           {/* Action Buttons */}
           <div className="space-y-4 w-full">

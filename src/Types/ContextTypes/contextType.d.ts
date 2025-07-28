@@ -135,9 +135,10 @@ export interface ProvidersProps {
 }
 
 interface ProfileContextType {
-  updateUsername: (newUsername: string) => Promise<boolean>;
+  updateUsername: (newUsername: string) => Promise<ApiResponse<string>>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   loading: boolean;
   error: string;
   setError: React.Dispatch<React.SetStateAction<string>>
+  username:string;
 }
