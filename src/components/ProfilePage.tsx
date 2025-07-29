@@ -143,7 +143,7 @@ export default function ProfilePage() {
                   className="w-full p-2 mb-4 border border-[var(--color-border)] rounded-lg bg-[var(--color-input-bg)] text-[var(--color-input-text)]"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
-                  placeholder="New username"
+                  placeholder={user?.username}
                 />
                 {error && <p className="text-red-500 mb-2">{error}</p>}
                 <button
