@@ -14,7 +14,7 @@ import { useProfile } from "../context/ProfileContextFolder/ProfileContext";
 import Avatar from "./Avatar";
 
 export default function ProfilePage() {
-  const { logout } = useAuth();
+  const {user, logout } = useAuth();
   const navigate = useNavigate();
   const [showEditUsername, setShowEditUsername] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
@@ -74,7 +74,7 @@ export default function ProfilePage() {
           <Avatar username={username} size="xl" className="shadow-lg mb-4" />
 
           <p className="text-gray-500 italic mb-6">
-            {username || "No username set"}
+            {user?.username ?? "No username set"}
           </p>
 
           {/* Action Buttons */}
