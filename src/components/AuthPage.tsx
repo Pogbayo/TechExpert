@@ -154,7 +154,7 @@ export default function AuthPage() {
         toast.error(result.error || "Registration failed.");
       }
     } catch {
-      setError("Registration failed.");
+      setError("Registration failed...");
       toast.error("Registration failed!");
     } finally {
       setLoading(false);
