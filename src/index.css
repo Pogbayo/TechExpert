@@ -157,3 +157,41 @@ input, textarea {
   }
 }
 
+@media (max-width: 1166px) {
+  .search-form {
+    width: 100%; /* adjust this value as needed */
+    /* border: 2px solid red; */
+  }
+}
+
+@media (max-width: 1124px) and (min-width:989px) {
+ /* .filter-button-container{
+  border: 2px solid red;
+ } */
+.filter-button {
+    width: 50px !important;
+    /* background-color: #23272f !important; */
+    /* border: 2px solid red !important; */
+    font-size: 10px !important;
+  }
+}
+@media (max-width: 987px) and (min-width:700px) {
+ .filter-button-container{
+  /* border: 2px solid red; */
+  margin-left: 0 !important;
+  padding: 0 12px 0 12px;
+ }
+.filter-button {
+    width: 45px !important;
+    /* background-color: #23272f !important; */
+    /* border: 2px solid red !important; */
+    font-size: 10px !important;
+  }
+}
+
+.filter-button {
+    width: 60px !important;
+    /* background-color: #23272f !important; */
+    /* border: 2px solid red !important; */
+    font-size: 10px !important;
+  }

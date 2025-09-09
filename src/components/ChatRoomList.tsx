@@ -12,7 +12,14 @@ import { useOnlineUsers } from "../context/OnlineUsersContext";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import ChatRoomRow from "./ChatRoomRow";
-import { FiLogOut, FiPlus, FiSearch, FiFilter, FiX, FiRefreshCw } from "react-icons/fi";
+import {
+  FiLogOut,
+  FiPlus,
+  FiSearch,
+  // FiFilter,
+  FiX,
+  FiRefreshCw,
+} from "react-icons/fi";
 
 export interface ChatRoomListProps {
   chatRoomId: string;
@@ -401,7 +408,7 @@ export default function ChatRoomList({
       {!showAllUsers && (
         <>
           <div
-            className={`flex items-center gap-2 mx-[var(--space-2)] mt-2 sticky top-[var(--header-height)] z-20 bg-[var(--color-background)] transition-transform duration-300 ${
+            className={`form-container flex items-center gap-2 mx-[var(--space-2)] mt-2 sticky top-[var(--header-height)] z-20 bg-[var(--color-background)] transition-transform duration-300 ${
               isScrolledUp ? "translate-y-[-100%]" : "translate-y-0"
             }`}
             style={{ "--header-height": "60px" } as React.CSSProperties}
@@ -411,7 +418,7 @@ export default function ChatRoomList({
                 e.preventDefault();
                 handleSearch(searchText);
               }}
-              className="flex-1 flex items-center bg-[var(--color-input-bg)] px-[var(--space-3)] py-[var(--space-2)] rounded-full shadow-sm"
+              className="search-form flex-1 flex items-center bg-[var(--color-input-bg)] px-[var(--space-3)] py-[var(--space-2)] rounded-full shadow-sm"
             >
               <button type="submit" className="text-[var(--color-text)]">
                 <FiSearch />
@@ -429,7 +436,7 @@ export default function ChatRoomList({
               />
             </form>
 
-            <div className="relative" ref={filterMenuRef}>
+            {/* <div className="relative" ref={filterMenuRef}>
               <button
                 onClick={() => setFilterMenuOpen((prev) => !prev)}
                 className="p-3 bg-[var(--color-input-bg)] rounded-full text-[var(--color-text)] shadow-sm"
@@ -454,22 +461,22 @@ export default function ChatRoomList({
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
 
           <div
-            className={`flex gap-1 md:gap-2 ml-4 mt-2 mb-2 sticky top-[calc(var(--header-height)+var(--search-height))] z-10 transition-transform duration-300 ${
+            className={`filter-button-container flex gap-1 md:gap-2 ml-4 mt-2 mb-2 sticky top-[calc(var(--header-height)+var(--search-height))] z-10 transition-transform duration-300 ${
               isScrolledUp ? "translate-y-[-100%]" : "translate-y-0"
             }`}
             style={{ "--search-height": "48px" } as React.CSSProperties}
           >
-          {filterOptions.map((filter) => (
+            {filterOptions.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-1.5 rounded-[20px] text-xs font-bold transition-colors`}
+                className={`filter-button px-0 py-1.5 rounded-[15px] text-xs font-bold transition-colors`}
                 style={{
-                  minWidth: 56,
+                  // minWidth: 56,
                   backgroundColor:
                     activeFilter === filter ? "#e6f9ec" : "#e5e7eb",
                   color: activeFilter === filter ? "#166534" : "#111",

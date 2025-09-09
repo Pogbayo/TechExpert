@@ -29,7 +29,7 @@ const InstallPrompt = () => {
     return () => window.removeEventListener("popstate", handleRouteChange);
   }, []);
 
-  // Add a handler to dismiss the prompt and persist the choice
+  // handler to dismiss the prompt and persist the choice
   const handleDismiss = () => {
     setIsVisible(false);
     localStorage.setItem("pwa-dismissed", "true");
@@ -58,7 +58,8 @@ const InstallPrompt = () => {
         "beforeinstallprompt",
         handleBeforeInstallPrompt
       );
-      window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("appinstalled", 
+        handleAppInstalled);
     };
   }, []);
 
@@ -83,7 +84,6 @@ const InstallPrompt = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black bg-opacity-40" />
       <div className="relative bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl shadow-2xl flex flex-col md:flex-row items-center justify-between p-6 gap-4 border-2 border-blue-300 max-w-lg w-full mx-4">
-        {/* X button to dismiss */}
         <button
           onClick={handleDismiss}
           className="absolute top-2 right-2 text-white text-2xl font-bold hover:text-blue-200 focus:outline-none"

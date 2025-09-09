@@ -69,14 +69,12 @@ ChatWindowPropsExtended) {
     swipeDuration: 500, // Maximum time for swipe
   });
 
-  const onlineUsers = useOnlineUsers()
+  const onlineUsers = useOnlineUsers();
   console.log(onlineUsers);
   const { connection } = useSignal();
   const connectionStatus = connection?.state;
   const { markAsRead, unreadCount, setUnreadCount } = useChatRoom();
   const { isDarkMode } = useTheme();
-
-
 
   useEffect(() => {
     if (!chatRoom?.chatRoomId) {
@@ -115,6 +113,7 @@ ChatWindowPropsExtended) {
         setUnreadCount((prev) => ({ ...prev, [roomId]: 0 }));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatRoom, messagesByChatRoomId, user?.id]);
 
   if (!chatRoom) {
@@ -266,13 +265,13 @@ ChatWindowPropsExtended) {
   //   </div>
   // );
 
-  const groupPanelTextClass = isDarkMode ? 'text-gray-300' : 'text-gray-900';
-  const groupPanelHoverClass = isDarkMode ? '' : 'hover:bg-gray-50';
+  const groupPanelTextClass = isDarkMode ? "text-gray-300" : "text-gray-900";
+  const groupPanelHoverClass = isDarkMode ? "" : "hover:bg-gray-50";
 
   return (
     <div {...handlers} className="flex flex-col h-full w-full">
       {/* Top Bar (Header) */}
-      <div className="p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between sticky top-0 z-20">
+      <div className=" p-4 border-b bg-[var(--color-background)] border-[var(--color-border)] text-[var(--color-text)] flex items-center justify-between fixed top-0 left-0 right-0 z-20">
         <div className="flex items-center gap-3">
           {isMobileView && (
             <button
@@ -280,46 +279,63 @@ ChatWindowPropsExtended) {
                 setShowChatWindow(false);
                 console.log("Back to chat list");
               }}
-              className={`p-2.5 rounded-full flex items-center justify-center transition-colors border ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 border-gray-700' : 'bg-gray-200 hover:bg-gray-300 border-gray-300'}`}
+              className={`p-2.5 rounded-full flex items-center justify-center transition-colors border ${
+                isDarkMode
+                  ? "bg-gray-800 hover:bg-gray-700 border-gray-700"
+                  : "bg-gray-200 hover:bg-gray-300 border-gray-300"
+              }`}
               aria-label="Back to chat list"
               title="Back to chat list"
             >
-              <FaArrowLeft className={isDarkMode ? 'text-white' : 'text-gray-700'} />
+              <FaArrowLeft
+                className={isDarkMode ? "text-white" : "text-gray-700"}
+              />
             </button>
           )}
           <div className="flex flex-col">
             <h3 className="text-lg text-[var(--color-text)] font-['Nunito',sans-serif] font-semibold">
-              {!chatRoom.isGroup ? (
-                (() => {
-                  const status = renderConnectionStatus();
-                  if (typeof status === 'string') {
-                    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-                  }
-                  return extractChatRoomName(chatRoom).charAt(0).toUpperCase() + extractChatRoomName(chatRoom).slice(1).toLowerCase();
-                })()
-              ) : (
-                extractChatRoomName(chatRoom).charAt(0).toUpperCase() + extractChatRoomName(chatRoom).slice(1).toLowerCase()
-              )}
+              {!chatRoom.isGroup
+                ? (() => {
+                    const status = renderConnectionStatus();
+                    if (typeof status === "string") {
+                      return (
+                        status.charAt(0).toUpperCase() +
+                        status.slice(1).toLowerCase()
+                      );
+                    }
+                    return (
+                      extractChatRoomName(chatRoom).charAt(0).toUpperCase() +
+                      extractChatRoomName(chatRoom).slice(1).toLowerCase()
+                    );
+                  })()
+                : extractChatRoomName(chatRoom).charAt(0).toUpperCase() +
+                  extractChatRoomName(chatRoom).slice(1).toLowerCase()}
             </h3>
             {chatRoom.isGroup && (
               <span className="text-xs text-gray-500 font-medium">
-                {chatRoom.users.length} {chatRoom.users.length === 1 ? 'member' : 'members'}
+                {chatRoom.users.length}{" "}
+                {chatRoom.users.length === 1 ? "member" : "members"}
               </span>
             )}
           </div>
         </div>
-        
 
-        
         {/* Menu/Avatar on the right */}
         {chatRoom.isGroup ? (
           <button
             onClick={() => setShowGroupMenu(!showGroupMenu)}
-            className={`p-2.5 rounded-full flex items-center justify-center transition-colors border ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 border-gray-700' : 'bg-gray-200 hover:bg-gray-300 border-gray-300'}`}
+            className={`p-2.5 rounded-full flex items-center justify-center transition-colors border ${
+              isDarkMode
+                ? "bg-gray-800 hover:bg-gray-700 border-gray-700"
+                : "bg-gray-200 hover:bg-gray-300 border-gray-300"
+            }`}
             aria-label="Group menu"
             title="Group details"
           >
-            <HiMenu size={20} className={isDarkMode ? 'text-white' : 'text-gray-700'} />
+            <HiMenu
+              size={20}
+              className={isDarkMode ? "text-white" : "text-gray-700"}
+            />
           </button>
         ) : otherUser ? (
           <div
@@ -363,7 +379,6 @@ ChatWindowPropsExtended) {
       <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--color-background)] text-[var(--color-text)] min-h-0"
-
       >
         {hasMessages ? (
           currentMessages!
@@ -499,7 +514,7 @@ ChatWindowPropsExtended) {
                   onClick={() => setShowGroupMenu(false)}
                 />
               )}
-              
+
               {/* Sliding Panel */}
               <motion.div
                 initial={isMobileView ? { y: "100%" } : { x: "100%" }}
@@ -507,8 +522,8 @@ ChatWindowPropsExtended) {
                 exit={isMobileView ? { y: "100%" } : { x: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                 className={`fixed bg-[var(--color-background)] border border-[var(--color-border)] z-50 overflow-hidden ${
-                  isMobileView 
-                    ? "bottom-0 left-0 right-0 rounded-t-3xl max-h-[80vh]" 
+                  isMobileView
+                    ? "bottom-0 left-0 right-0 rounded-t-3xl max-h-[80vh]"
                     : "top-0 right-0 h-full w-80 shadow-2xl"
                 }`}
               >
@@ -518,16 +533,19 @@ ChatWindowPropsExtended) {
                     <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
                   </div>
                 )}
-                
+
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className={`text-xl font-semibold ${groupPanelTextClass}`}>
+                      <h3
+                        className={`text-xl font-semibold ${groupPanelTextClass}`}
+                      >
                         {extractChatRoomName(chatRoom)}
                       </h3>
                       <p className={`text-sm mt-1 ${groupPanelTextClass}`}>
-                        {chatRoom.users.length} {chatRoom.users.length === 1 ? 'member' : 'members'}
+                        {chatRoom.users.length}{" "}
+                        {chatRoom.users.length === 1 ? "member" : "members"}
                       </p>
                     </div>
                     {!isMobileView && (
@@ -536,47 +554,103 @@ ChatWindowPropsExtended) {
                         className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                         aria-label="Close"
                       >
-                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-5 h-5 text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 {/* Stats Section */}
                 <div className="px-6 py-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <button 
+                    <button
                       onClick={() => setShowMembersList(!showMembersList)}
                       className={`bg-gray-50 p-4 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 cursor-pointer ${groupPanelHoverClass}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <svg className="w-4 h-4 text-black" fill="none" stroke="black" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          <svg
+                            className="w-4 h-4 text-black"
+                            fill="none"
+                            stroke="black"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                            />
                           </svg>
                         </div>
                         <div>
-                          <p className={`text-lg font-semibold ${isDarkMode ? 'text-black' : groupPanelTextClass}`}>{chatRoom.users.length}</p>
-                          <p className={`text-xs ${isDarkMode ? 'text-black' : groupPanelTextClass}`}>Members</p>
+                          <p
+                            className={`text-lg font-semibold ${
+                              isDarkMode ? "text-black" : groupPanelTextClass
+                            }`}
+                          >
+                            {chatRoom.users.length}
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              isDarkMode ? "text-black" : groupPanelTextClass
+                            }`}
+                          >
+                            Members
+                          </p>
                         </div>
                       </div>
                     </button>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center gap-3">
                       <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-black" fill="none" stroke="black" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        <svg
+                          className="w-4 h-4 text-black"
+                          fill="none"
+                          stroke="black"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
                         </svg>
                       </div>
                       <div>
-                        <p className={`text-base font-bold ${isDarkMode ? 'text-black' : groupPanelTextClass}`}>
-                          Created{' '}
+                        <p
+                          className={`text-base font-bold ${
+                            isDarkMode ? "text-black" : groupPanelTextClass
+                          }`}
+                        >
+                          Created{" "}
                           <span className="font-normal text-gray-500">
-                            {chatRoom.lastMessageTimestamp ? new Date(chatRoom.lastMessageTimestamp).toLocaleDateString() : 'No date info'}
+                            {chatRoom.lastMessageTimestamp
+                              ? new Date(
+                                  chatRoom.lastMessageTimestamp
+                                ).toLocaleDateString()
+                              : "No date info"}
                           </span>
                         </p>
-                        <p className={`text-sm font-semibold ${isDarkMode ? 'text-black' : groupPanelTextClass}`}>Group Info</p>
+                        <p
+                          className={`text-sm font-semibold ${
+                            isDarkMode ? "text-black" : groupPanelTextClass
+                          }`}
+                        >
+                          Group Info
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -585,21 +659,63 @@ ChatWindowPropsExtended) {
                 {/* Actions */}
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="space-y-2">
-                    <button className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}>
-                      <svg className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} fill="none" stroke={isDarkMode ? 'white' : 'black'} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <button
+                      className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}
+                    >
+                      <svg
+                        className={`w-5 h-5 ${
+                          isDarkMode ? "text-white" : "text-black"
+                        }`}
+                        fill="none"
+                        stroke={isDarkMode ? "white" : "black"}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       <span>Add Members</span>
                     </button>
-                    <button className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}>
-                      <svg className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} fill="none" stroke={isDarkMode ? 'white' : 'black'} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <button
+                      className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}
+                    >
+                      <svg
+                        className={`w-5 h-5 ${
+                          isDarkMode ? "text-white" : "text-black"
+                        }`}
+                        fill="none"
+                        stroke={isDarkMode ? "white" : "black"}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
                       </svg>
                       <span>Edit Group</span>
                     </button>
-                    <button className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}>
-                      <svg className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} fill="none" stroke={isDarkMode ? 'white' : 'black'} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2z" />
+                    <button
+                      className={`w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 ${groupPanelTextClass} ${groupPanelHoverClass}`}
+                    >
+                      <svg
+                        className={`w-5 h-5 ${
+                          isDarkMode ? "text-white" : "text-black"
+                        }`}
+                        fill="none"
+                        stroke={isDarkMode ? "white" : "black"}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2z"
+                        />
                       </svg>
                       <span>Share Group</span>
                     </button>
@@ -611,10 +727,12 @@ ChatWindowPropsExtended) {
                   <div className="border-t border-gray-100">
                     <div className="px-6 py-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className={`text-lg font-semibold ${groupPanelTextClass}`}>
+                        <h4
+                          className={`text-lg font-semibold ${groupPanelTextClass}`}
+                        >
                           All Members ({chatRoom.users.length})
                         </h4>
-                        <button 
+                        <button
                           onClick={() => setShowMembersList(false)}
                           className={`text-sm hover:text-gray-700 ${groupPanelTextClass}`}
                         >
@@ -623,21 +741,30 @@ ChatWindowPropsExtended) {
                       </div>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {chatRoom.users.map((member) => (
-                          <div key={member.id} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${groupPanelTextClass} ${groupPanelHoverClass}`}>
+                          <div
+                            key={member.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${groupPanelTextClass} ${groupPanelHoverClass}`}
+                          >
                             <Avatar
                               username={member.username || "user"}
                               size="md"
                             />
                             <div className="flex-1">
-                              <p className={`font-medium ${groupPanelTextClass}`}>
+                              <p
+                                className={`font-medium ${groupPanelTextClass}`}
+                              >
                                 {member.username}
                               </p>
                               {member.email && (
-                                <p className={`text-sm ${groupPanelTextClass}`}>{member.email}</p>
+                                <p className={`text-sm ${groupPanelTextClass}`}>
+                                  {member.email}
+                                </p>
                               )}
                             </div>
                             {member.id === user?.id && (
-                              <span className={`text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ${groupPanelTextClass}`}>
+                              <span
+                                className={`text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ${groupPanelTextClass}`}
+                              >
                                 You
                               </span>
                             )}

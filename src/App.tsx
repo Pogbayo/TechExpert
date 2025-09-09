@@ -24,11 +24,9 @@ export default function App() {
   return (
     <div className="app">
       <Toaster position="top-center" reverseOrder={false} />
-
-      {/* 🔽 The install prompt component */}
+     {/* //InstallPrompt for first time users */}
       <InstallPrompt />
 
-      {/* 🔽 My routes */}
       <Routes>
         <Route path="/" element={<AuthPage />} />
         <Route path="/auth" element={<AuthPage />} />

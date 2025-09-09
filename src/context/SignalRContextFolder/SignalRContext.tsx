@@ -83,7 +83,7 @@ export const SignalProvider = ({ userId, children }: SignalRProviderProps) => {
         return;
       }
 
-      console.log("Starting SignalR with userId:", userId, "token:", !!token);
+      console.log("Starting SignalR with userId:", !!userId, "token:", !!token);
       setIsStarting(true);
       connectionAttempts++;
 

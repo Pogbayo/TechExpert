@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContextFoler/useTheme";
 
 export default function ChatLayout() {
-  const {chatRoom, openChatRoom } = useChatRoom();
+  const { chatRoom, openChatRoom } = useChatRoom();
   const windowSize = useWindowSize();
   const isMobileView = windowSize <= 769.9333;
 
@@ -25,16 +25,16 @@ export default function ChatLayout() {
   useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
 
     setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", setVH);
 
     return () => {
-      window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', setVH);
+      window.removeEventListener("resize", setVH);
+      window.removeEventListener("orientationchange", setVH);
     };
   }, []);
 
@@ -71,17 +71,37 @@ export default function ChatLayout() {
     }
   };
 
+  // const [pageWidth, setPageWidth] = useState(window.innerWidth);
+
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     setPageWidth(window.innerWidth);
+  //   };
+
+  //   // Listen for resize
+  //   window.addEventListener("resize", handleResize);
+
+  //   // Cleanup listener when component unmounts
+  //   return () => {
+  //     window.removeEventListener("resize", handleResize);
+  //   };
+  // }, []);
+
   return (
-    <div 
+    <div
       className="h-screen bg-white flex flex-col text-[var(--color-text)] font-[var(--font-primary)]"
       style={{
-        height: isMobileView ? 'calc(var(--vh, 1vh) * 100)' : '100vh'
+        height: isMobileView ? "calc(var(--vh, 1vh) * 100)" : "100vh",
       }}
     >
       {!isMobileView && (
         <header className="flex items-center justify-between px-[var(--space-2)] py-[var(--space-2)] border-b border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text)]">
-          <h1 style={{ fontSize: "var(--font-size-sm)" }} className="font-bold">
+          <h1
+            style={{ fontSize: "var(--font-size-base)" }}
+            className="font-bold"
+          >
             Spag Chat
+            {/* {pageWidth} */}
           </h1>
           <div className="flex items-center gap-4">
             <button
@@ -127,10 +147,10 @@ export default function ChatLayout() {
         )}
 
         {(!isMobileView || showChatWindow) && (
-          <div 
+          <div
             className="flex-1 p-0 flex flex-col bg-[var(--color-background)] min-h-[50vh]"
             style={{
-              height: isMobileView ? 'calc(var(--vh, 1vh) * 100)' : 'auto'
+              height: isMobileView ? "calc(var(--vh, 1vh) * 100)" : "auto",
             }}
           >
             <ChatWindow
